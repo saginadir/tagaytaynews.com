@@ -1,0 +1,11 @@
+[Unit]
+Description=Laravel Scheduler — Template
+
+[Service]
+Type=oneshot
+User=www-laravel
+Group=www-data
+WorkingDirectory=/var/www/template
+ExecStart=/usr/bin/php artisan schedule:run
+StandardOutput=journal
+StandardError=journal
