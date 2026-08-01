@@ -50,6 +50,6 @@ Already south of the lake? Skip Manila entirely. From Lemery, Diokno Highway cli
 
 ## Before you set out
 
-Fuel up before the climb, keep some cash handy for tolls and parking, and check the weather — fog and heavy rain can slow the ridge to a crawl, especially at night. Our [Tagaytay weather guide](/articles/tagaytay-weather-guide) covers driving in fog, and the [weekend itinerary](/articles/tagaytay-weekend-itinerary) shows how to time a two-day trip around the traffic.
+Fuel up before the climb, keep some cash handy for tolls and parking, and check the weather — fog and heavy rain can slow the ridge to a crawl, especially at night. Our [Tagaytay weather guide](/weather/tagaytay-weather-guide) covers driving in fog, and the [weekend itinerary](/tourism/tagaytay-weekend-itinerary) shows how to time a two-day trip around the traffic.
 
 However you arrive, remember that the ridge roads are shared by buses, tricycles, and the occasional fog bank. Drive patiently — the view at the top is worth it.

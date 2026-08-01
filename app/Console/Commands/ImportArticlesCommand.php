@@ -101,7 +101,7 @@ class ImportArticlesCommand extends Command
 
         foreach (preg_split('/\R/', $frontMatter) ?: [] as $line) {
             if (preg_match('/^([a-z_]+):\s*(.*)$/', trim($line), $kv)) {
-                $meta[$kv[1]] = trim($kv[2]);
+                $meta[$kv[1]] = trim($kv[2], " \t\"'");
             }
         }
 

@@ -44,4 +44,4 @@ Buy pasalubong on your way out of the city, not on the way in — nobody wants a
 - **Parking along the ridge fills up** by midday on weekends; walking between nearby spots is often faster than moving the car.
 - **Turn meals into a loop:** breakfast near the market, lunch on the ridge, merienda with a view, pasalubong on the way down.
 
-Tagaytay rewards unhurried eating. Pick one splurge, one market meal, and one long coffee with a view, and you will have tasted the essentials. Our [Taal Volcano guide](/articles/taal-volcano-guide) has more on the ridge viewpoints, and the [weekend itinerary](/articles/tagaytay-weekend-itinerary) shows how to fit the food stops into two days.
+Tagaytay rewards unhurried eating. Pick one splurge, one market meal, and one long coffee with a view, and you will have tasted the essentials. Our [Taal Volcano guide](/taal-volcano/taal-volcano-guide) has more on the ridge viewpoints, and the [weekend itinerary](/tourism/tagaytay-weekend-itinerary) shows how to fit the food stops into two days.

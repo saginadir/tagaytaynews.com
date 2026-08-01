@@ -54,6 +54,6 @@ The authoritative word on Taal is PHIVOLCS, which posts bulletins on its website
 
 ## Where to view Taal safely
 
-The best views are also the safest ones. The Tagaytay ridge along Aguinaldo Highway is lined with restaurants, cafes, and view decks facing the volcano. Picnic Grove and People's Park in the Sky offer open public viewpoints, while Twin Lakes on the Tagaytay–Nasugbu side frames the lake below. Views are clearest on cool, dry-season mornings — see our [Tagaytay weather guide](/articles/tagaytay-weather-guide) for the best months.
+The best views are also the safest ones. The Tagaytay ridge along Aguinaldo Highway is lined with restaurants, cafes, and view decks facing the volcano. Picnic Grove and People's Park in the Sky offer open public viewpoints, while Twin Lakes on the Tagaytay–Nasugbu side frames the lake below. Views are clearest on cool, dry-season mornings — see our [Tagaytay weather guide](/weather/tagaytay-weather-guide) for the best months.
 
 Taal is beautiful precisely because it is alive. Enjoy it from the ridge, respect the danger zones, and let PHIVOLCS tell you what the volcano is doing.

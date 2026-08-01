@@ -55,4 +55,4 @@ Tagaytay's fog forms when moist air cools as it climbs the ridge and condenses i
 - **November** — Amihan arrives; the air turns cool and dry.
 - **December** — Cool, festive, and packed. Book everything early.
 
-Whatever the month, check the PAGASA forecast before you go, and keep plans flexible enough to swap a fogged-in view deck for a warm bowl of bulalo. If you are timing a weekend around the weather, our [2-day Tagaytay itinerary](/articles/tagaytay-weekend-itinerary) and [driving guide](/articles/how-to-get-to-tagaytay) will help.
+Whatever the month, check the PAGASA forecast before you go, and keep plans flexible enough to swap a fogged-in view deck for a warm bowl of bulalo. If you are timing a weekend around the weather, our [2-day Tagaytay itinerary](/tourism/tagaytay-weekend-itinerary) and [driving guide](/traffic/how-to-get-to-tagaytay) will help.
