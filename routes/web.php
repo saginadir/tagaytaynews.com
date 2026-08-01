@@ -1,14 +1,21 @@
 <?php
 
+use App\Http\Controllers\AdminArticleController;
+use App\Http\Controllers\AdminCategoryController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminMediaController;
+use App\Http\Controllers\AdminSourceController;
+use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
 // Public
-Route::get('/', fn () => inertia('Welcome'))->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Guest-only routes
 Route::middleware('guest')->group(function () {
@@ -31,6 +38,19 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
     Route::post('/', [AdminController::class, 'login'])->name('authenticate');
     Route::post('/logout', [AdminController::class, 'logout'])->name('logout')->middleware('admin.auth');
     Route::middleware('admin.auth')->group(function () {
+        Route::resource('articles', AdminArticleController::class)->except(['show']);
+        Route::resource('categories', AdminCategoryController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('sources', AdminSourceController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('media', AdminMediaController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 });
+
+// Public pages — wildcard routes stay last so static paths above win by order
+Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::get('/{category:slug}/{article:slug}', [ArticleController::class, 'show'])
+    ->where(['category' => '[a-z0-9-]+', 'article' => '[a-z0-9-]+'])
+    ->name('article.show');
+Route::get('/{category:slug}', [CategoryController::class, 'show'])
+    ->where('category', '[a-z0-9-]+')
+    ->name('category.show');

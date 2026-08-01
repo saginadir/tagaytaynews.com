@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
+import AdminNav from '@/components/AdminNav.vue'
 import type { MediaItem } from '@/types/content'
 
 const props = defineProps<{
@@ -76,9 +77,7 @@ function formatDate(dateStr: string): string {
         <div class="max-w-7xl mx-auto">
             <div class="flex items-center justify-between mb-8">
                 <h1 class="text-2xl font-bold">Media Library</h1>
-                <nav class="flex gap-4 text-sm">
-                    <a :href="`/${adminPath}/media`" class="text-white font-medium">Media</a>
-                </nav>
+                <AdminNav :admin-path="adminPath" current="media" />
             </div>
 
             <!-- Upload area -->
