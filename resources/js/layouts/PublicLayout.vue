@@ -138,6 +138,11 @@ const year = new Date().getFullYear();
                                 >Contact the newsroom</Link
                             >
                         </li>
+                        <li>
+                            <Link href="/work-with-us" class="hover:text-white"
+                                >Work with us</Link
+                            >
+                        </li>
                     </ul>
                 </div>
             </div>

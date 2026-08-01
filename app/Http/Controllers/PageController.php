@@ -28,4 +28,15 @@ class PageController extends Controller
             ),
         ]);
     }
+
+    public function workWithUs()
+    {
+        return Inertia::render('WorkWithUs', [
+            'seo' => Seo::make(
+                title: 'Work With Us — Tagaytay News',
+                description: 'Partner with Tagaytay News: visit invitations and honest reviews, advertising, and media collaborations on the ridge.',
+                canonical: url('/work-with-us'),
+            ),
+        ]);
+    }
 }
