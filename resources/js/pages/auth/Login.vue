@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import AuthLayout from '@/layouts/AuthLayout.vue';
 import InputError from '@/components/InputError.vue';
+import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import TextLink from '@/components/TextLink.vue';
+import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const form = useForm({
     email: '',
@@ -21,7 +21,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Log in" description="Enter your credentials to access your account">
+    <AuthLayout
+        title="Log in"
+        description="Enter your credentials to access your account"
+    >
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-2">
                 <Label for="email">Email</Label>
@@ -53,7 +56,7 @@ const submit = () => {
                 {{ form.processing ? 'Logging in...' : 'Log in' }}
             </Button>
 
-            <div class="text-muted-foreground text-center text-sm">
+            <div class="text-center text-sm text-muted-foreground">
                 Don't have an account?
                 <TextLink href="/register">Sign up</TextLink>
             </div>

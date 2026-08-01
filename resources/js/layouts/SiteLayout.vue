@@ -2,7 +2,7 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-const props = defineProps<{
+defineProps<{
     title?: string;
     description?: string;
 }>();
@@ -20,24 +20,27 @@ const user = computed(() => (page.props.auth as any)?.user);
 
     <div class="min-h-screen bg-white text-zinc-900">
         <!-- Header -->
-        <header class="border-b border-zinc-200 bg-white sticky top-0 z-50">
+        <header class="sticky top-0 z-50 border-b border-zinc-200 bg-white">
             <div class="mx-auto max-w-7xl px-4 sm:px-6">
-                <div class="flex items-center justify-between h-16">
-                    <Link href="/" class="text-xl font-bold tracking-tight text-zinc-900">
+                <div class="flex h-16 items-center justify-between">
+                    <Link
+                        href="/"
+                        class="text-xl font-bold tracking-tight text-zinc-900"
+                    >
                         {{ appName }}
                     </Link>
 
                     <nav class="flex items-center gap-1">
                         <Link
                             href="/"
-                            class="px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 rounded-md hover:bg-zinc-100 transition-colors"
+                            class="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                         >
                             Home
                         </Link>
                         <template v-if="user">
                             <Link
                                 href="/dashboard"
-                                class="px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 rounded-md hover:bg-zinc-100 transition-colors"
+                                class="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                             >
                                 Dashboard
                             </Link>
@@ -45,13 +48,13 @@ const user = computed(() => (page.props.auth as any)?.user);
                         <template v-else>
                             <Link
                                 href="/login"
-                                class="px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 rounded-md hover:bg-zinc-100 transition-colors"
+                                class="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                             >
                                 Log in
                             </Link>
                             <Link
                                 href="/register"
-                                class="px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 rounded-md hover:bg-zinc-100 transition-colors"
+                                class="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                             >
                                 Register
                             </Link>
@@ -67,9 +70,12 @@ const user = computed(() => (page.props.auth as any)?.user);
         </main>
 
         <!-- Footer -->
-        <footer class="border-t border-zinc-200 bg-zinc-50 mt-16">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 py-8">
-                <p class="text-xs text-zinc-400 text-center">&copy; {{ new Date().getFullYear() }} {{ appName }}. All rights reserved.</p>
+        <footer class="mt-16 border-t border-zinc-200 bg-zinc-50">
+            <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+                <p class="text-center text-xs text-zinc-400">
+                    &copy; {{ new Date().getFullYear() }} {{ appName }}. All
+                    rights reserved.
+                </p>
             </div>
         </footer>
     </div>

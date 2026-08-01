@@ -118,7 +118,9 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                         <InputError :message="addForm.errors.url" />
                     </div>
                     <div>
-                        <label :class="labelClass">RSS feed URL (optional)</label>
+                        <label :class="labelClass"
+                            >RSS feed URL (optional)</label
+                        >
                         <input
                             v-model="addForm.feed_url"
                             type="url"

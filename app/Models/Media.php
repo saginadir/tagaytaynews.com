@@ -18,7 +18,7 @@ class Media extends Model
 
     public function getUrlAttribute(): string
     {
-        return '/storage/' . $this->disk_path;
+        return '/storage/'.$this->disk_path;
     }
 
     public function getIsVideoAttribute(): bool

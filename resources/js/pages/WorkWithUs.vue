@@ -50,7 +50,9 @@ const offerings = [
                     :key="offering.title"
                     class="border-t border-neutral-200 pt-6"
                 >
-                    <h2 class="mb-2 font-display text-2xl font-bold text-brand-950">
+                    <h2
+                        class="mb-2 font-display text-2xl font-bold text-brand-950"
+                    >
                         {{ offering.title }}
                     </h2>
                     <p>{{ offering.body }}</p>
@@ -61,13 +63,15 @@ const offerings = [
                 </h2>
                 <p>
                     Partnerships never buy our opinion. Invited visits,
-                    sponsored content, and advertising are disclosed clearly, and
-                    our reviews stay honest — that is what makes coverage in
+                    sponsored content, and advertising are disclosed clearly,
+                    and our reviews stay honest — that is what makes coverage in
                     Tagaytay News worth having.
                 </p>
 
                 <div class="rounded-lg bg-brand-50 p-6">
-                    <h2 class="mb-2 font-display text-2xl font-bold text-brand-950">
+                    <h2
+                        class="mb-2 font-display text-2xl font-bold text-brand-950"
+                    >
                         Get in touch
                     </h2>
                     <p class="mb-4">

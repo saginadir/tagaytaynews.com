@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { computed } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 
 interface Stats {
@@ -33,7 +33,9 @@ const cards = computed(() => [
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
-            <h2 class="text-xl font-semibold">Welcome back, {{ user?.name }}</h2>
+            <h2 class="text-xl font-semibold">
+                Welcome back, {{ user?.name }}
+            </h2>
 
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <div
