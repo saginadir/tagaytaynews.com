@@ -6,8 +6,8 @@ rules, and how work is coordinated (`bin/task`).
 
 ## Tech stack
 
-PHP 8.4 · Laravel 13 · Vue 3 · Inertia.js 3 · Tailwind CSS 4 · Vite 7 · SQLite ·
-Pest 4 (PHPUnit 12) · Wayfinder (TS route/action generation)
+PHP 8.4 · Laravel 13 · Vue 3 · Inertia.js 3 · Tailwind CSS 4 · Vite 8 · SQLite ·
+Pest 5 (PHPUnit 13) · Wayfinder (TS route/action generation)
 
 ## Task tracking
 

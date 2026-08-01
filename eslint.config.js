@@ -1,6 +1,6 @@
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
 import prettier from 'eslint-config-prettier/flat';
-import importPlugin from 'eslint-plugin-import';
+import importX from 'eslint-plugin-import-x';
 import vue from 'eslint-plugin-vue';
 
 export default defineConfigWithVueTs(
@@ -8,10 +8,10 @@ export default defineConfigWithVueTs(
     vueTsConfigs.recommended,
     {
         plugins: {
-            import: importPlugin,
+            'import-x': importX,
         },
         settings: {
-            'import/resolver': {
+            'import-x/resolver': {
                 typescript: {
                     alwaysTryTypes: true,
                     project: './tsconfig.json',
@@ -29,7 +29,7 @@ export default defineConfigWithVueTs(
                     fixStyle: 'separate-type-imports',
                 },
             ],
-            'import/order': [
+            'import-x/order': [
                 'error',
                 {
                     groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
@@ -39,7 +39,7 @@ export default defineConfigWithVueTs(
                     },
                 },
             ],
-            'import/consistent-type-specifier-style': [
+            'import-x/consistent-type-specifier-style': [
                 'error',
                 'prefer-top-level',
             ],
