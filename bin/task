@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# bin/task — minimal long-term task tracker backed by sqlite (tasks.db, repo root).
+# Used by AI agents and the owner to coordinate work across sessions. See MISSION.md.
+set -euo pipefail
+
+DB="$(cd "$(dirname "$0")/.." && pwd)/tasks.db"
+
+init() {
+    sqlite3 "$DB" <<'SQL'
+CREATE TABLE IF NOT EXISTS tasks (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    title       TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    hat         TEXT NOT NULL DEFAULT 'dev',
+    status      TEXT NOT NULL DEFAULT 'todo'
+                CHECK (status IN ('todo','doing','done','blocked','wontdo')),
+    priority    INTEGER NOT NULL DEFAULT 2 CHECK (priority IN (1,2,3)),
+    tags        TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    done_at     TEXT
+);
+CREATE TABLE IF NOT EXISTS notes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    body       TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+SQL
+}
+
+esc() { printf '%s' "$1" | sed "s/'/''/g"; }
+
+usage() {
+    cat <<'EOF'
+bin/task — task tracker (sqlite: tasks.db)
+
+  add "Title" [-d desc] [-h hat] [-p 1|2|3] [-t tag1,tag2]   create task, prints id
+  list [todo|doing|done|blocked|all]                          default: todo+doing+blocked
+  next                                                        top open tasks by priority
+  show ID                                                     full detail + notes
+  set ID key=value ...                                        keys: status priority hat tags title description
+  note ID "text"                                              append progress note
+  rm ID                                                       delete task (and notes)
+
+hats: dev devops design editor writer curator seo social analyst bizdev
+priority: 1=high 2=normal 3=low    status: todo doing done blocked wontdo
+EOF
+}
+
+cmd_add() {
+    local title="" desc="" hat="dev" prio=2 tags=""
+    title=$1; shift
+    while getopts "d:h:p:t:" opt; do
+        case $opt in
+            d) desc=$OPTARG ;; h) hat=$OPTARG ;; p) prio=$OPTARG ;; t) tags=$OPTARG ;;
+            *) usage; exit 1 ;;
+        esac
+    done
+    [ -z "$title" ] && { usage; exit 1; }
+    sqlite3 "$DB" "INSERT INTO tasks (title, description, hat, priority, tags)
+                   VALUES ('$(esc "$title")', '$(esc "$desc")', '$(esc "$hat")', $prio, '$(esc "$tags")');
+                   SELECT last_insert_rowid();"
+}
+
+cmd_list() {
+    local filter="${1:-open}"
+    local where="status IN ('todo','doing','blocked')"
+    case "$filter" in
+        all) where="1=1" ;;
+        todo|doing|done|blocked|wontdo) where="status='$filter'" ;;
+    esac
+    sqlite3 -column -header "$DB" \
+        "SELECT id, priority AS p, status, hat, substr(title,1,70) AS title
+         FROM tasks WHERE $where ORDER BY priority, id;"
+}
+
+cmd_next() {
+    sqlite3 -column -header "$DB" \
+        "SELECT id, priority AS p, status, hat, substr(title,1,70) AS title
+         FROM tasks WHERE status IN ('todo','doing') ORDER BY priority, id LIMIT 5;"
+}
+
+cmd_show() {
+    sqlite3 -header "$DB" \
+        "SELECT * FROM tasks WHERE id=$1;" | column -t -s '|'
+    echo "--- notes ---"
+    sqlite3 "$DB" "SELECT created_at || '  ' || body FROM notes WHERE task_id=$1 ORDER BY id;"
+}
+
+cmd_set() {
+    local id=$1; shift
+    local kv key val allowed="status priority hat tags title description"
+    for kv in "$@"; do
+        key=${kv%%=*}; val=${kv#*=}
+        case " $allowed " in *" $key "*) ;; *) echo "unknown key: $key"; exit 1 ;; esac
+        if [ "$key" = "status" ] && [ "$val" = "done" ]; then
+            sqlite3 "$DB" "UPDATE tasks SET status='done', done_at=datetime('now'), updated_at=datetime('now') WHERE id=$id;"
+        else
+            sqlite3 "$DB" "UPDATE tasks SET $key='$(esc "$val")', updated_at=datetime('now') WHERE id=$id;"
+        fi
+    done
+    cmd_show "$id"
+}
+
+cmd_note() {
+    sqlite3 "$DB" "INSERT INTO notes (task_id, body) VALUES ($1, '$(esc "$2")');
+                   UPDATE tasks SET updated_at=datetime('now') WHERE id=$1;"
+}
+
+cmd_rm() {
+    sqlite3 "$DB" "DELETE FROM notes WHERE task_id=$1; DELETE FROM tasks WHERE id=$1;"
+}
+
+init
+case "${1:-}" in
+    add)  shift; cmd_add "$@" ;;
+    list|ls) shift; cmd_list "$@" ;;
+    next) cmd_next ;;
+    show) shift; cmd_show "$@" ;;
+    set)  shift; cmd_set "$@" ;;
+    note) shift; cmd_note "$@" ;;
+    rm)   shift; cmd_rm "$@" ;;
+    *)    usage ;;
+esac

@@ -2,9 +2,9 @@
 # Local → server deploy script. Run from project root on every deploy.
 set -euo pipefail
 
-SERVER=87.99.130.147
+SERVER=ssh.tagaytaynews.com # via Cloudflare Tunnel (works on SSH-filtered networks); direct IP 87.99.130.147 also fine on normal networks
 SSH_KEY=devops/hetzner_server
-APP_DIR=/var/www/template
+APP_DIR=/var/www/tagaytaynews
 SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=accept-new"
 QUEUE_WORKERS=2 # to update this, also update systemd service count in devops/provision.sh - and also disable manually extra workers when reducing count
 
@@ -26,6 +26,7 @@ rsync -avz --delete \
     --exclude='bootstrap/cache/' \
     --exclude='.git/' \
     --exclude='devops/' \
+    --exclude='tasks.db' \
     -e "$SSH" \
     ./ "www-laravel@$SERVER:$APP_DIR/"
 
@@ -42,10 +43,10 @@ $SSH "www-laravel@$SERVER" "cd $APP_DIR && \
     sudo systemctl restart php8.5-fpm"
 
 for i in $(seq 1 $QUEUE_WORKERS); do
-    $SSH "www-laravel@$SERVER" "sudo systemctl restart template-queue@$i 2>/dev/null || true"
+    $SSH "www-laravel@$SERVER" "sudo systemctl restart tagaytaynews-queue@$i 2>/dev/null || true"
 done
 
-$SSH "www-laravel@$SERVER" "sudo systemctl start template-scheduler.timer 2>/dev/null || true"
+$SSH "www-laravel@$SERVER" "sudo systemctl start tagaytaynews-scheduler.timer 2>/dev/null || true"
 
 echo ""
-echo "==> Deploy complete! https://your-domain.com"
+echo "==> Deploy complete! https://tagaytaynews.com"

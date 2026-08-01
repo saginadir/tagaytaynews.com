@@ -1,5 +1,5 @@
 [Unit]
-Description=Run Laravel Scheduler every minute
+Description=Run Tagaytay News Scheduler every minute
 
 [Timer]
 OnBootSec=1min

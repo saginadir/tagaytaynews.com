@@ -1,47 +1,35 @@
 #!/usr/bin/env bash
-# One-time server provision script — run as root via:
-#   ssh -i devops/hetzner_server root@YOUR_SERVER_IP 'bash -s' < devops/provision.sh
-# Safe to re-run: idempotent guards on cert, user, dirs.
+# Provisions tagaytaynews.com as an ADDITIONAL site on the shared Hetzner box
+# (87.99.130.147). The box already serves several sites (gorencoart, ivertubani,
+# treatingasd, vorkl, vulnsurge, zukeep) with the same layout: per-site app dir,
+# nginx vhost, letsencrypt cert, <site>-queue@ / <site>-scheduler units.
+# This script adds tagaytaynews following that convention — it must NOT touch
+# the other sites, and it never stops nginx (zero downtime for the other sites).
+#
+# Run as root (either address works; tunnel works on SSH-filtered networks):
+#   ssh -i devops/hetzner_server root@87.99.130.147 'bash -s' < devops/provision.sh
+#   ssh root@ssh.tagaytaynews.com 'bash -s' < devops/provision.sh
+# Idempotent guards on cert, dirs, units — safe to re-run.
 set -euo pipefail
 
-DOMAIN="your-domain.com"
+DOMAIN="tagaytaynews.com"
 APP_USER="www-laravel"
-APP_DIR="/var/www/template"
-CERTBOT_EMAIL="your-email@example.com"
+APP_DIR="/var/www/tagaytaynews"
+CERTBOT_EMAIL="saginadir@gmail.com"
+QUEUE_WORKERS=2 # keep in sync with devops/deploy.sh
 
-echo "==> [1/12] Adding ondrej/php PPA and installing packages..."
-add-apt-repository -y ppa:ondrej/php
-apt update
-apt install -y \
-    nginx \
-    php8.5-fpm php8.5-cli php8.5-sqlite3 php8.5-mbstring \
-    php8.5-xml php8.5-curl php8.5-zip \
-    unzip certbot
+echo "==> [1/8] Sanity-checking base server..."
+id "$APP_USER" &>/dev/null || { echo "ERROR: user $APP_USER missing — base box not provisioned"; exit 1; }
+systemctl list-unit-files php8.5-fpm.service &>/dev/null || { echo "ERROR: php8.5-fpm missing"; exit 1; }
+command -v certbot >/dev/null || { echo "ERROR: certbot missing"; exit 1; }
+command -v nginx >/dev/null || { echo "ERROR: nginx missing"; exit 1; }
 
-echo "==> [2/12] Installing Composer globally..."
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-echo "==> [3/12] Creating app user: $APP_USER..."
-id "$APP_USER" &>/dev/null || useradd -r -m -s /bin/bash "$APP_USER"
-usermod -s /bin/bash "$APP_USER"
-usermod -aG systemd-journal "$APP_USER"
-
-echo "==> [3b/12] Setting up SSH access for $APP_USER..."
-mkdir -p /home/www-laravel/.ssh
-chmod 700 /home/www-laravel/.ssh
-# Inject deploy key (idempotent: grep prevents duplicates)
-DEPLOY_PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKJZa0gpUBEa97T/Wdhpcor5REkluGZN1ILCWHMQ8RZ/ saginadir@Sagis-MacBook-Pro.local"
-grep -qxF "$DEPLOY_PUBKEY" /home/www-laravel/.ssh/authorized_keys 2>/dev/null \
-    || echo "$DEPLOY_PUBKEY" >> /home/www-laravel/.ssh/authorized_keys
-chmod 600 /home/www-laravel/.ssh/authorized_keys
-chown -R www-laravel:www-laravel /home/www-laravel/.ssh
-
-echo "==> [4/12] Creating app directory: $APP_DIR..."
-mkdir -p "$APP_DIR"
-chown "$APP_USER":www-data "$APP_DIR"
+echo "==> [2/8] Creating app directory: $APP_DIR..."
+mkdir -p "$APP_DIR/public"
+chown -R "$APP_USER":www-data "$APP_DIR"
 chmod 750 "$APP_DIR"
 
-echo "==> [5/12] Creating storage and bootstrap/cache directories..."
+echo "==> [3/8] Creating storage and bootstrap/cache directories..."
 mkdir -p "$APP_DIR/storage/app/public"
 mkdir -p "$APP_DIR/storage/framework/cache/data"
 mkdir -p "$APP_DIR/storage/framework/sessions"
@@ -51,17 +39,29 @@ mkdir -p "$APP_DIR/bootstrap/cache"
 chown -R "$APP_USER":www-data "$APP_DIR/storage" "$APP_DIR/bootstrap"
 chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 
-echo "==> [6/12] Creating empty SQLite database..."
+echo "==> [4/8] Creating empty SQLite database..."
 mkdir -p "$APP_DIR/database"
 touch "$APP_DIR/database/database.sqlite"
 chown "$APP_USER":www-data "$APP_DIR/database" "$APP_DIR/database/database.sqlite"
 chmod 775 "$APP_DIR/database"
 chmod 664 "$APP_DIR/database/database.sqlite"
 
-echo "==> [7/12] Obtaining SSL certificate (skipped if already exists)..."
+echo "==> [5/8] Obtaining SSL certificate via webroot (skipped if already exists)..."
 if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
-    systemctl stop nginx 2>/dev/null || true
-    certbot certonly --standalone \
+    # Temporary HTTP-only vhost so certbot HTTP-01 works through the running
+    # nginx — no nginx stop, other sites unaffected.
+    cat > /etc/nginx/sites-available/tagaytaynews <<'NGINXCONF'
+server {
+    listen 80;
+    server_name tagaytaynews.com www.tagaytaynews.com;
+    root /var/www/tagaytaynews/public;
+    location /.well-known/acme-challenge/ { try_files $uri =404; }
+    location / { return 404; }
+}
+NGINXCONF
+    ln -sf /etc/nginx/sites-available/tagaytaynews /etc/nginx/sites-enabled/tagaytaynews
+    nginx -t && systemctl reload nginx
+    certbot certonly --webroot -w "$APP_DIR/public" \
         -d "$DOMAIN" -d "www.$DOMAIN" \
         --non-interactive --agree-tos \
         -m "$CERTBOT_EMAIL"
@@ -69,30 +69,30 @@ else
     echo "    Certificate already exists, skipping."
 fi
 
-echo "==> [8/12] Installing Nginx config..."
-cat > /etc/nginx/sites-available/template <<'NGINXCONF'
+echo "==> [6/8] Installing full Nginx vhost..."
+cat > /etc/nginx/sites-available/tagaytaynews <<'NGINXCONF'
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com;
-    return 301 https://your-domain.com$request_uri;
+    server_name tagaytaynews.com www.tagaytaynews.com;
+    return 301 https://tagaytaynews.com$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name www.your-domain.com;
-    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-    return 301 https://your-domain.com$request_uri;
+    server_name www.tagaytaynews.com;
+    ssl_certificate /etc/letsencrypt/live/tagaytaynews.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tagaytaynews.com/privkey.pem;
+    return 301 https://tagaytaynews.com$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name your-domain.com;
-    root /var/www/template/public;
+    server_name tagaytaynews.com;
+    root /var/www/tagaytaynews/public;
     index index.php;
 
-    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/tagaytaynews.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tagaytaynews.com/privkey.pem;
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
@@ -128,37 +128,20 @@ server {
 }
 NGINXCONF
 
-ln -sf /etc/nginx/sites-available/template /etc/nginx/sites-enabled/template
-rm -f /etc/nginx/sites-enabled/default
+ln -sf /etc/nginx/sites-available/tagaytaynews /etc/nginx/sites-enabled/tagaytaynews
 nginx -t
+systemctl reload nginx
 
-echo "==> [9/12] Starting and enabling Nginx..."
-systemctl restart nginx
-systemctl enable nginx
-
-echo "==> [10/12] Configuring PHP-FPM pool..."
-PHP_POOL="/etc/php/8.5/fpm/pool.d/www.conf"
-sed -i 's/^user = .*/user = www-laravel/' "$PHP_POOL"
-sed -i 's/^group = .*/group = www-data/' "$PHP_POOL"
-sed -i 's/^pm = .*/pm = dynamic/' "$PHP_POOL"
-sed -i 's/^pm.max_children = .*/pm.max_children = 20/' "$PHP_POOL"
-sed -i 's/^pm.start_servers = .*/pm.start_servers = 5/' "$PHP_POOL"
-sed -i 's/^pm.min_spare_servers = .*/pm.min_spare_servers = 3/' "$PHP_POOL"
-sed -i 's/^pm.max_spare_servers = .*/pm.max_spare_servers = 10/' "$PHP_POOL"
-sed -i 's|^listen = .*|listen = /run/php/php8.5-fpm.sock|' "$PHP_POOL"
-systemctl restart php8.5-fpm
-systemctl enable php8.5-fpm
-
-echo "==> [11/12] Installing and enabling systemd units..."
-cat > /etc/systemd/system/template-queue@.service <<'EOF'
+echo "==> [7/8] Installing and enabling systemd units..."
+cat > /etc/systemd/system/tagaytaynews-queue@.service <<EOF
 [Unit]
-Description=Queue Worker %i — Template
+Description=Queue Worker %i — Tagaytay News
 After=network.target
 
 [Service]
-User=www-laravel
+User=$APP_USER
 Group=www-data
-WorkingDirectory=/var/www/template
+WorkingDirectory=$APP_DIR
 ExecStart=/usr/bin/php artisan queue:work \
     --sleep=3 --tries=1 --timeout=600 --max-time=3600
 Restart=always
@@ -170,23 +153,23 @@ StandardError=journal
 WantedBy=multi-user.target
 EOF
 
-cat > /etc/systemd/system/template-scheduler.service <<'EOF'
+cat > /etc/systemd/system/tagaytaynews-scheduler.service <<EOF
 [Unit]
-Description=Scheduler — Template
+Description=Scheduler — Tagaytay News
 
 [Service]
 Type=oneshot
-User=www-laravel
+User=$APP_USER
 Group=www-data
-WorkingDirectory=/var/www/template
+WorkingDirectory=$APP_DIR
 ExecStart=/usr/bin/php artisan schedule:run
 StandardOutput=journal
 StandardError=journal
 EOF
 
-cat > /etc/systemd/system/template-scheduler.timer <<'EOF'
+cat > /etc/systemd/system/tagaytaynews-scheduler.timer <<'EOF'
 [Unit]
-Description=Run Template Scheduler every minute
+Description=Run Tagaytay News Scheduler every minute
 
 [Timer]
 OnBootSec=1min
@@ -198,22 +181,19 @@ WantedBy=timers.target
 EOF
 
 systemctl daemon-reload
-QUEUE_WORKERS=2
-for i in $(seq 1 $QUEUE_WORKERS); do systemctl enable --now "template-queue@$i"; done
-systemctl enable --now template-scheduler.timer
+for i in $(seq 1 $QUEUE_WORKERS); do systemctl enable --now "tagaytaynews-queue@$i"; done
+systemctl enable --now tagaytaynews-scheduler.timer
 
-echo "==> [12/12] Adding sudoers entry for $APP_USER..."
-cat > /etc/sudoers.d/www-laravel <<'EOF'
-www-laravel ALL=(ALL) NOPASSWD: /bin/systemctl restart php8.5-fpm, /bin/systemctl restart template-queue@*, /bin/systemctl start template-scheduler.timer, /bin/systemctl restart template-scheduler.timer
+echo "==> [8/8] Adding sudoers entries for $APP_USER..."
+cat > /etc/sudoers.d/www-laravel-tagaytaynews <<EOF
+$APP_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart php8.5-fpm, /bin/systemctl restart tagaytaynews-queue@*, /bin/systemctl start tagaytaynews-scheduler.timer, /bin/systemctl restart tagaytaynews-scheduler.timer
 EOF
-chmod 440 /etc/sudoers.d/www-laravel
-visudo -cf /etc/sudoers.d/www-laravel
+chmod 440 /etc/sudoers.d/www-laravel-tagaytaynews
+visudo -cf /etc/sudoers.d/www-laravel-tagaytaynews
 
 echo ""
 echo "==> Provision complete!"
 echo ""
 echo "Next steps:"
-echo "  1. Point DNS: A record $DOMAIN -> $(curl -s ifconfig.me)"
-echo "  2. Create $APP_DIR/.env from .env.production.example"
-echo "  3. Run: ./devops/deploy.sh (from local machine)"
-echo "  4. On server: cd $APP_DIR && php artisan key:generate"
+echo "  1. Create $APP_DIR/.env (deploy.sh does NOT sync .env files)"
+echo "  2. Run: ./devops/deploy.sh (from local machine)"

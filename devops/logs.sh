@@ -4,9 +4,10 @@
 #   -f  follow (tail -f) — default is print last 200 lines and exit
 set -euo pipefail
 
-SERVER=87.99.130.147
+SERVER=ssh.tagaytaynews.com # via Cloudflare Tunnel; direct IP 87.99.130.147 also fine on normal networks
 SSH_KEY=devops/hetzner_server
 SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=accept-new"
+APP_DIR=/var/www/tagaytaynews
 
 FOLLOW=false
 if [[ "${1:-}" == "-f" ]]; then
@@ -24,15 +25,15 @@ case "$TARGET" in
         $SSH "www-laravel@$SERVER" "sudo tail -f /var/log/nginx/error.log"
         ;;
     app)
-        $SSH "www-laravel@$SERVER" "tail $(tail_flags) /var/www/template/storage/logs/laravel.log"
+        $SSH "www-laravel@$SERVER" "tail $(tail_flags) $APP_DIR/storage/logs/laravel.log"
         ;;
     queue)
-        $SSH "www-laravel@$SERVER" "journalctl -u 'laravel-queue@*' $(journal_flags)"
+        $SSH "www-laravel@$SERVER" "journalctl -u 'tagaytaynews-queue@*' $(journal_flags)"
         ;;
     scheduler)
-        $SSH "www-laravel@$SERVER" "journalctl -u laravel-scheduler $(journal_flags)"
+        $SSH "www-laravel@$SERVER" "journalctl -u tagaytaynews-scheduler $(journal_flags)"
         ;;
     all|*)
-        $SSH "www-laravel@$SERVER" "tail $(tail_flags) /var/log/nginx/error.log /var/www/template/storage/logs/laravel.log"
+        $SSH "www-laravel@$SERVER" "tail $(tail_flags) /var/log/nginx/error.log $APP_DIR/storage/logs/laravel.log"
         ;;
 esac

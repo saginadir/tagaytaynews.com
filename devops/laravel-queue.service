@@ -1,11 +1,11 @@
 [Unit]
-Description=Laravel Queue Worker — Template
+Description=Laravel Queue Worker — Tagaytay News
 After=network.target
 
 [Service]
 User=www-laravel
 Group=www-data
-WorkingDirectory=/var/www/template
+WorkingDirectory=/var/www/tagaytaynews
 ExecStart=/usr/bin/php artisan queue:work \
     --sleep=3 --tries=1 --timeout=360 --max-time=3600
 Restart=always

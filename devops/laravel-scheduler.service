@@ -1,11 +1,11 @@
 [Unit]
-Description=Laravel Scheduler — Template
+Description=Laravel Scheduler — Tagaytay News
 
 [Service]
 Type=oneshot
 User=www-laravel
 Group=www-data
-WorkingDirectory=/var/www/template
+WorkingDirectory=/var/www/tagaytaynews
 ExecStart=/usr/bin/php artisan schedule:run
 StandardOutput=journal
 StandardError=journal
