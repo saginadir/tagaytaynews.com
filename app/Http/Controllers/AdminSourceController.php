@@ -62,7 +62,9 @@ class AdminSourceController extends Controller
         return $request->validate([
             'name' => 'required|string|max:255',
             'url' => 'required|url|max:255',
+            'feed_url' => 'nullable|url|max:255',
             'tier' => 'required|integer|between:1,3',
+            'is_active' => 'boolean',
             'notes' => 'nullable|string|max:1000',
         ]);
     }

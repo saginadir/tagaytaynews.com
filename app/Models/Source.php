@@ -13,7 +13,10 @@ class Source extends Model
     protected $fillable = [
         'name',
         'url',
+        'feed_url',
         'tier',
+        'is_active',
+        'last_fetched_at',
         'notes',
     ];
 
@@ -21,6 +24,8 @@ class Source extends Model
     {
         return [
             'tier' => 'integer',
+            'is_active' => 'boolean',
+            'last_fetched_at' => 'datetime',
         ];
     }
 

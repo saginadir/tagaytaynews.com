@@ -23,7 +23,10 @@ export interface SourceItem {
     id: number;
     name: string;
     url: string;
+    feed_url: string | null;
     tier: number;
+    is_active: boolean;
+    last_fetched_at: string | null;
     notes: string | null;
     created_at: string;
 }

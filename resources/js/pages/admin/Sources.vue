@@ -20,9 +20,23 @@ function tierLabel(tier: number): string {
     return tiers.find((t) => t.value === tier)?.label ?? `Tier ${tier}`;
 }
 
-const addForm = useForm({ name: '', url: '', tier: 2, notes: '' });
+const addForm = useForm({
+    name: '',
+    url: '',
+    feed_url: '',
+    tier: 2,
+    is_active: false,
+    notes: '',
+});
 const editingId = ref<number | null>(null);
-const editForm = useForm({ name: '', url: '', tier: 2, notes: '' });
+const editForm = useForm({
+    name: '',
+    url: '',
+    feed_url: '',
+    tier: 2,
+    is_active: false,
+    notes: '',
+});
 
 function addSource() {
     addForm.post(`/${props.adminPath}/sources`, {
@@ -35,7 +49,9 @@ function startEdit(source: SourceItem) {
     editingId.value = source.id;
     editForm.name = source.name;
     editForm.url = source.url;
+    editForm.feed_url = source.feed_url ?? '';
     editForm.tier = source.tier;
+    editForm.is_active = source.is_active;
     editForm.notes = source.notes ?? '';
     editForm.clearErrors();
 }
@@ -79,7 +95,7 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                 class="mb-8 rounded-lg border border-zinc-800 bg-zinc-900 p-6"
             >
                 <div
-                    class="grid grid-cols-1 items-start gap-4 md:grid-cols-2 lg:grid-cols-5"
+                    class="grid grid-cols-1 items-start gap-4 md:grid-cols-2 lg:grid-cols-3"
                 >
                     <div>
                         <label :class="labelClass">Name</label>
@@ -100,6 +116,16 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                             placeholder="https://..."
                         />
                         <InputError :message="addForm.errors.url" />
+                    </div>
+                    <div>
+                        <label :class="labelClass">RSS feed URL (optional)</label>
+                        <input
+                            v-model="addForm.feed_url"
+                            type="url"
+                            :class="inputClass"
+                            placeholder="https://.../feed"
+                        />
+                        <InputError :message="addForm.errors.feed_url" />
                     </div>
                     <div>
                         <label :class="labelClass">Tier</label>
@@ -123,7 +149,17 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                         />
                         <InputError :message="addForm.errors.notes" />
                     </div>
-                    <div class="lg:pt-5">
+                    <div class="flex items-end gap-4">
+                        <label
+                            class="flex items-center gap-2 pb-2 text-xs text-zinc-400"
+                        >
+                            <input
+                                v-model="addForm.is_active"
+                                type="checkbox"
+                                class="rounded border-zinc-600 bg-zinc-800"
+                            />
+                            Poll feed
+                        </label>
                         <button
                             type="submit"
                             :disabled="addForm.processing"
@@ -154,6 +190,7 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                             <th class="px-4 py-3 font-medium">Name</th>
                             <th class="px-4 py-3 font-medium">URL</th>
                             <th class="px-4 py-3 font-medium">Tier</th>
+                            <th class="px-4 py-3 font-medium">Feed</th>
                             <th class="px-4 py-3 font-medium">Notes</th>
                             <th class="px-4 py-3 text-right font-medium">
                                 Actions
@@ -207,6 +244,29 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                                     <InputError
                                         :message="editForm.errors.tier"
                                     />
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input
+                                        v-model="editForm.feed_url"
+                                        type="url"
+                                        :class="inputClass"
+                                        placeholder="RSS feed URL"
+                                        @keyup.enter="saveEdit(source)"
+                                        @keyup.escape="cancelEdit"
+                                    />
+                                    <InputError
+                                        :message="editForm.errors.feed_url"
+                                    />
+                                    <label
+                                        class="mt-2 flex items-center gap-2 text-xs text-zinc-400"
+                                    >
+                                        <input
+                                            v-model="editForm.is_active"
+                                            type="checkbox"
+                                            class="rounded border-zinc-600 bg-zinc-800"
+                                        />
+                                        Poll feed
+                                    </label>
                                 </td>
                                 <td class="px-4 py-3">
                                     <input
@@ -264,6 +324,33 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                                     >
                                         {{ tierLabel(source.tier) }}
                                     </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <template v-if="source.feed_url">
+                                        <span
+                                            class="inline-block rounded px-2 py-0.5 text-xs font-medium"
+                                            :class="
+                                                source.is_active
+                                                    ? 'bg-green-900/60 text-green-300'
+                                                    : 'bg-zinc-800 text-zinc-400'
+                                            "
+                                        >
+                                            {{
+                                                source.is_active
+                                                    ? 'polling'
+                                                    : 'paused'
+                                            }}
+                                        </span>
+                                        <div
+                                            v-if="source.last_fetched_at"
+                                            class="mt-1 text-xs text-zinc-600"
+                                        >
+                                            {{ source.last_fetched_at }}
+                                        </div>
+                                    </template>
+                                    <span v-else class="text-xs text-zinc-600"
+                                        >manual</span
+                                    >
                                 </td>
                                 <td class="px-4 py-3 text-zinc-400">
                                     {{ source.notes || '—' }}
