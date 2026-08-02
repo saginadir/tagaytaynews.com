@@ -17,6 +17,8 @@ class SeoFilesController extends Controller
                 ['loc' => route('about'), 'priority' => '0.5'],
                 ['loc' => route('contact'), 'priority' => '0.5'],
                 ['loc' => route('work-with-us'), 'priority' => '0.5'],
+                ['loc' => route('quiz'), 'priority' => '0.6'],
+                ['loc' => route('map'), 'priority' => '0.6'],
             ];
 
             foreach (Category::orderBy('name')->get() as $category) {

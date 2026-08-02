@@ -56,6 +56,17 @@ class Article extends Model
                 $article->slug = static::uniqueSlug(Str::slug($article->title));
             }
         });
+
+        static::saved(function (Article $article) {
+            $becamePublished = $article->status === self::STATUS_PUBLISHED
+                && ($article->wasRecentlyCreated || $article->wasChanged('status'));
+
+            if ($becamePublished && config('services.indexnow.enabled', true)) {
+                \App\Support\IndexNow::ping([
+                    route('article.show', [$article->category, $article]),
+                ]);
+            }
+        });
     }
 
     public function category(): BelongsTo

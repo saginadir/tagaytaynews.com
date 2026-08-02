@@ -106,6 +106,15 @@ function percent(votes: number): number {
                 {{ poll.totalVotes }} vote{{ poll.totalVotes === 1 ? '' : 's' }}
                 so far
             </p>
+            <a
+                v-if="voted"
+                :href="`https://twitter.com/intent/tweet?text=${encodeURIComponent('I just voted: ' + poll.question + ' Cast yours on Tagaytay News:')}&url=${encodeURIComponent('https://tagaytaynews.com')}`"
+                target="_blank"
+                rel="noopener"
+                class="inline-block rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
+            >
+                &#120143; Share this poll
+            </a>
         </div>
     </div>
 </template>

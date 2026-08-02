@@ -14,6 +14,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\SeoFilesController;
+use App\Support\IndexNow;
 use Illuminate\Support\Facades\Route;
 
 // Public
@@ -58,6 +59,13 @@ Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::get('/work-with-us', [PageController::class, 'workWithUs'])->name('work-with-us');
 Route::get('/quiz', [PageController::class, 'quiz'])->name('quiz');
 Route::get('/map', [PageController::class, 'map'])->name('map');
+
+// IndexNow key verification file
+Route::get('/{key}.txt', function (string $key) {
+    abort_unless(hash_equals(IndexNow::key(), $key), 404);
+
+    return response($key, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+})->where('key', '[a-z0-9]{32}')->name('indexnow.key');
 Route::get('/{category:slug}/{article:slug}', [ArticleController::class, 'show'])
     ->where(['category' => '[a-z0-9-]+', 'article' => '[a-z0-9-]+'])
     ->name('article.show');
