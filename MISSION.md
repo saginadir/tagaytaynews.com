@@ -40,6 +40,46 @@ Everything else is done by **AI agents** (Kimi Code CLI sessions) wearing hats:
 Hats are task labels (`bin/task add -h writer`), not separate processes. Any
 agent picks up the highest-priority unblocked task regardless of hat.
 
+## Where news comes from (the pipeline)
+
+News flows through a draft-first pipeline — nothing reaches the public
+unreviewed:
+
+1. **`news:fetch`** (every 30 min via scheduler): polls RSS feeds of active
+   Tier-2 sources (Inquirer, Philstar ×2, Rappler, Interaksyon, BusinessWorld,
+   SunStar), keeps only Tagaytay/Cavite/Taal-relevant items (keyword filter in
+   `config/newsroom.php`), dedupes by URL, queues **drafts**. Feed list lives in
+   `SourceSeeder` and the admin Sources page.
+2. **`news:watch-phivolcs`** (every 6 h): change-detector on the PHIVOLCS
+   bulletin index (their site is image-based + malformed headers — we fetch via
+   raw sockets, `App\Support\RawHttp`). New Taal bulletin → draft saying
+   "write this up".
+3. **Editorial pass (an agent wearing the `editor` hat)**: open drafts, verify
+   facts against the source (open it in a real browser when bot-blocked),
+   rewrite in our own words with attribution, add a photo, publish. Original
+   evergreen content lives in `content/articles/*.md` → `articles:import`.
+4. **Taal alert level** in the Ridge Report widget comes from the `settings`
+   table — update it when PHIVOLCS changes the level (admin UI is task #19;
+   until then: `Setting::set('taal_alert_level', 'N')` via tinker).
+
+National outlets only mention Tagaytay a few times a week — that is expected
+for a hyperlocal. Evergreen guides + widgets carry the site between news
+cycles; do not lower the quality bar to fill the homepage.
+
+## How we know it's working (measurement)
+
+- **First-party analytics**: `TrackPageView` middleware writes `page_views`
+  (path, external referrer, daily-rotating salted IP hash — no cookies, no raw
+  IPs, bots filtered). Dashboard at `/dashboard`; CLI digest:
+  `php artisan analytics:report --days=7` (views, uniques, top pages,
+  referrers, content + poll pulse).
+- **Weekly analytics ritual (every `analyst` session)**: run the report, note
+  trends in a `bin/task` note, decide ONE thing to double down on (topic,
+  format, or channel) and create the task for it. Traffic with no external
+  referrers means distribution — not content — is the bottleneck.
+- **Engagement signals**: poll votes, quiz shares, time on interactive pages
+  (map/quiz paths in top pages) vs. bounce to articles.
+
 ## Operating loop (every session)
 
 1. Read `MISSION.md` + `AGENTS.md`.
@@ -49,6 +89,10 @@ agent picks up the highest-priority unblocked task regardless of hat.
    it to Sagi in the final reply.
 5. Done → `status=done`. Create follow-up tasks as you discover them.
 6. Leave the repo clean: tests green, `vendor/bin/pint --dirty` run, no half-edits.
+
+**Newsroom sessions** (scheduled via cron or started by Sagi): run
+`news:fetch` review → editorial pass on drafts → check Ridge Report accuracy →
+publish → log a note. **Analyst sessions** (weekly): the ritual above.
 
 ## Editorial policy
 
@@ -127,13 +171,17 @@ commitments, responding to collaboration requests from businesses.
 
 ## Roadmap
 
-- **Phase 0 — foundation** ✅ this session: docs, task system, dependency
-  updates, app booting locally.
-- **Phase 1 — skeleton**: ~~deploy pipeline de-templated, DNS pointed, site
-  live~~ ✅ (live 2026-08-01). Remaining: brand identity (logo/colors), article
-  data model + admin CRUD, public pages (home/article/category/about/contact).
-- **Phase 2 — newsroom**: curated source list, RSS/API ingestion → draft queue,
-  publishing cadence, SEO/GEO baseline, first real articles.
-- **Phase 3 — growth**: social channels, analytics-driven iteration, newsletter;
-  then business: media kit, restaurant/resort/hotel review invitations,
-  advertising collabs.
+- **Phase 0 — foundation** ✅ docs, task system, dependency updates.
+- **Phase 1 — skeleton** ✅ live 2026-08-01: deploy pipeline, DNS, brand
+  identity, article model + admin CRUD, public pages.
+- **Phase 2 — newsroom** ✅ 2026-08-02: tiered source list, RSS ingestion →
+  draft queue (30-min schedule), PHIVOLCS bulletin watch, SEO baseline
+  (sitemap/RSS/robots/llms.txt/JSON-LD), first evergreen guides, first
+  published news story.
+- **Phase 2.5 — engagement** ✅ 2026-08-02: real photography (CC-licensed,
+  credited), live Ridge Report (weather/fog + Taal alert), polls, quiz,
+  interactive ridge map, first-party analytics, article share/progress.
+- **Phase 3 — growth** ◀ current: publishing cadence (daily editorial pass),
+  weekly analytics ritual, social channels (#10, needs Sagi's logins),
+  newsletter, image pipeline on prod (GD), then business: media kit,
+  restaurant/resort/hotel review invitations, advertising collabs.
