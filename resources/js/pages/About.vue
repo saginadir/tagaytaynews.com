@@ -88,6 +88,20 @@ const coverage = [
                 </p>
 
                 <h2 class="font-display text-2xl font-bold text-brand-950">
+                    Privacy &amp; analytics
+                </h2>
+                <p>
+                    We measure readership to make the site better, with as
+                    little data as possible: our own first-party analytics use
+                    no cookies and store no IP addresses (only a daily-rotating
+                    salted hash). We also use
+                    <strong>Microsoft Clarity</strong> to see aggregated
+                    heatmaps and anonymized session replays — it masks IPs and
+                    form fields by default. No personal data is sold or shared
+                    with advertisers.
+                </p>
+
+                <h2 class="font-display text-2xl font-bold text-brand-950">
                     Get in touch
                 </h2>
                 <p>
