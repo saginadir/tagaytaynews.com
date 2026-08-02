@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\IndexNow;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -62,7 +63,7 @@ class Article extends Model
                 && ($article->wasRecentlyCreated || $article->wasChanged('status'));
 
             if ($becamePublished && config('services.indexnow.enabled', true)) {
-                \App\Support\IndexNow::ping([
+                IndexNow::ping([
                     route('article.show', [$article->category, $article]),
                 ]);
             }

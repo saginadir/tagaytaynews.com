@@ -2,7 +2,7 @@
 
 use App\Models\Article;
 use App\Models\Category;
-use App\Models\Setting;
+use App\Support\IndexNow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 
@@ -14,10 +14,10 @@ beforeEach(function () {
 });
 
 test('indexnow key is generated once, persisted, and served from the key file', function () {
-    $key = \App\Support\IndexNow::key();
+    $key = IndexNow::key();
 
     expect($key)->toMatch('/^[a-z0-9]{32}$/')
-        ->and(\App\Support\IndexNow::key())->toBe($key); // stable across calls
+        ->and(IndexNow::key())->toBe($key); // stable across calls
 
     $this->get("/{$key}.txt")
         ->assertOk()

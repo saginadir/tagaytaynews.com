@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Article;
+use App\Models\Category;
 use App\Support\IndexNow;
 use Illuminate\Console\Command;
 
@@ -28,7 +29,7 @@ class PingIndexNowCommand extends Command
             route('map'),
         ];
 
-        foreach (\App\Models\Category::all() as $category) {
+        foreach (Category::all() as $category) {
             $urls[] = route('category.show', $category);
         }
 
