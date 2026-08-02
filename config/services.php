@@ -32,6 +32,8 @@ return [
         // Microsoft Clarity project ID (session recordings + heatmaps).
         // Set CLARITY_ID in .env once the Clarity project exists.
         'id' => env('CLARITY_ID'),
+        // Data Export API token (Clarity → Settings → Data Export).
+        'token' => env('CLARITY_API_TOKEN'),
     ],
 
     'indexnow' => [
