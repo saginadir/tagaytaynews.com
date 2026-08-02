@@ -102,6 +102,12 @@ class ImportMediaCommand extends Command
      */
     private function downscale(string $body, string $mime, string $url): array
     {
+        if (! function_exists('imagecreatefromstring')) {
+            Log::warning('Media import: GD extension unavailable, storing original', ['url' => $url]);
+
+            return [$body, $mime];
+        }
+
         $image = @imagecreatefromstring($body);
 
         if ($image === false) {
