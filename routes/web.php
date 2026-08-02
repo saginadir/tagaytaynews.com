@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminArticleController;
 use App\Http\Controllers\AdminCategoryController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminMediaController;
+use App\Http\Controllers\AdminPollController;
 use App\Http\Controllers\AdminSourceController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
@@ -52,6 +53,8 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::resource('categories', AdminCategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('sources', AdminSourceController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('media', AdminMediaController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('polls', AdminPollController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::post('taal-alert', [AdminPollController::class, 'setTaalAlert'])->name('taal-alert');
     });
 });
 

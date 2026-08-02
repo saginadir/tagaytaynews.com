@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
     adminPath: string;
-    current: 'articles' | 'categories' | 'sources' | 'media';
+    current: 'articles' | 'categories' | 'sources' | 'media' | 'polls';
 }>();
 
 const links = [
@@ -9,6 +9,7 @@ const links = [
     { key: 'categories', label: 'Categories', path: 'categories' },
     { key: 'sources', label: 'Sources', path: 'sources' },
     { key: 'media', label: 'Media', path: 'media' },
+    { key: 'polls', label: 'Polls & Alerts', path: 'polls' },
 ] as const;
 </script>
 
