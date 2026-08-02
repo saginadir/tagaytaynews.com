@@ -143,6 +143,7 @@ async function copyLink() {
                     :href="shareLinks.x"
                     target="_blank"
                     rel="noopener"
+                    data-track="share:article-x"
                     class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
                     >&#120143; Post</a
                 >
@@ -150,11 +151,13 @@ async function copyLink() {
                     :href="shareLinks.facebook"
                     target="_blank"
                     rel="noopener"
+                    data-track="share:article-facebook"
                     class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
                     >Facebook</a
                 >
                 <button
                     @click="copyLink"
+                    data-track="share:article-copy"
                     class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
                 >
                     {{ copied ? '✓ Link copied' : 'Copy link' }}

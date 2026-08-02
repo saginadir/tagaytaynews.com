@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\Article;
+use App\Models\Event;
 use App\Models\PageView;
 use App\Models\Poll;
+use Carbon\CarbonInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -78,6 +80,55 @@ class AnalyticsReportCommand extends Command
             }
         }
 
+        $this->engagement($since);
+
         return self::SUCCESS;
+    }
+
+    private function engagement(CarbonInterface $since): void
+    {
+        $this->newLine();
+        $this->info('Engagement:');
+
+        $sessions = Event::where('created_at', '>=', $since)->distinct()->count('session');
+        $avgSeconds = round(((float) Event::where('type', 'time')->where('created_at', '>=', $since)->avg('value')) / 1000);
+        $avgScroll = round((float) Event::where('type', 'time')->where('created_at', '>=', $since)
+            ->get()->avg(fn ($e) => (float) $e->target));
+
+        $this->line("  Sessions: {$sessions} · Avg engaged time: {$avgSeconds}s · Avg max scroll: {$avgScroll}%");
+
+        $byPage = Event::select('path', DB::raw('avg(value) as avg_ms'), DB::raw('count(*) as reads'))
+            ->where('type', 'time')
+            ->where('created_at', '>=', $since)
+            ->groupBy('path')->orderByDesc('avg_ms')->limit(5)->get();
+
+        foreach ($byPage as $row) {
+            $this->line(sprintf('  %6ss  %s (%d reads)', round($row->avg_ms / 1000), $row->path, $row->reads));
+        }
+
+        $features = Event::select('target', DB::raw('count(*) as hits'))
+            ->where('type', 'feature')
+            ->where('created_at', '>=', $since)
+            ->groupBy('target')->orderByDesc('hits')->limit(10)->get();
+
+        if ($features->isNotEmpty()) {
+            $this->line('  Feature usage:');
+            foreach ($features as $row) {
+                $this->line(sprintf('  %6d  %s', $row->hits, $row->target));
+            }
+        }
+
+        $outbound = Event::select('target', DB::raw('count(*) as hits'))
+            ->where('type', 'outbound')
+            ->where('created_at', '>=', $since)
+            ->groupBy('target')->orderByDesc('hits')->limit(5)->get();
+
+        if ($outbound->isNotEmpty()) {
+            $this->line('  Outbound clicks:');
+            foreach ($outbound as $row) {
+                $host = parse_url((string) $row->target, PHP_URL_HOST) ?: $row->target;
+                $this->line(sprintf('  %6d  %s', $row->hits, $host));
+            }
+        }
     }
 }

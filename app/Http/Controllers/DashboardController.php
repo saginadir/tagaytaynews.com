@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\PageView;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -36,6 +37,17 @@ class DashboardController extends Controller
                     ->whereNotNull('ip_hash')
                     ->distinct()
                     ->count('ip_hash'),
+                'avgEngagedSeconds7d' => round(((float) Event::where('type', 'time')
+                    ->where('created_at', '>=', now()->subDays(7))
+                    ->avg('value')) / 1000),
+                'quizCompletions7d' => Event::where('type', 'feature')
+                    ->where('target', 'quiz:complete')
+                    ->where('created_at', '>=', now()->subDays(7))
+                    ->count(),
+                'shares7d' => Event::whereIn('type', ['click', 'feature'])
+                    ->where('target', 'like', 'share:%')
+                    ->where('created_at', '>=', now()->subDays(7))
+                    ->count(),
                 'topPages' => $topPages,
                 'topReferrers' => $topReferrers,
             ],

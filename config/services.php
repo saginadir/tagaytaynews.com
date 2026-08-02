@@ -28,6 +28,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'clarity' => [
+        // Microsoft Clarity project ID (session recordings + heatmaps).
+        // Set CLARITY_ID in .env once the Clarity project exists.
+        'id' => env('CLARITY_ID'),
+    ],
+
     'indexnow' => [
         'enabled' => env('INDEXNOW_ENABLED', true),
     ],

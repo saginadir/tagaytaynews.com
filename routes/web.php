@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PollController;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 // Public
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/polls/{poll}/vote', [PollController::class, 'vote'])->name('polls.vote');
+Route::post('/t', [EventController::class, 'store'])->name('events.store')->middleware('throttle:120,1');
 Route::get('/sitemap.xml', [SeoFilesController::class, 'sitemap'])->name('sitemap');
 Route::get('/feed.xml', [SeoFilesController::class, 'feed'])->name('feed');
 Route::get('/robots.txt', [SeoFilesController::class, 'robots'])->name('robots');

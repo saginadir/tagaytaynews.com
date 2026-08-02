@@ -97,6 +97,7 @@ function createMarkerIcon(category: RidgePoiCategory): L.DivIcon {
 function setCategory(category: CategoryFilter): void {
     activeCategory.value = category;
     selectedName.value = null;
+    window.tnTrack?.('feature', `map:filter:${category}`);
     if (!map) {
         return;
     }
@@ -121,6 +122,7 @@ function focusPoi(poi: RidgePoi): void {
         return;
     }
     selectedName.value = poi.name;
+    window.tnTrack?.('feature', `map:poi:${poi.category}`);
     map.flyTo([poi.lat, poi.lng], Math.max(map.getZoom(), 14), {
         duration: 0.6,
     });

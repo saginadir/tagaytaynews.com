@@ -4,6 +4,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import '../css/app.css';
 import { initializeTheme } from '@/composables/useAppearance';
+import { initTracker } from '@/tracker';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -26,3 +27,6 @@ createInertiaApp({
 
 // This will set light / dark mode on page load...
 initializeTheme();
+
+// First-party engagement tracking (time, scroll, clicks, feature events)
+initTracker();

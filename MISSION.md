@@ -73,12 +73,26 @@ cycles; do not lower the quality bar to fill the homepage.
   IPs, bots filtered). Dashboard at `/dashboard`; CLI digest:
   `php artisan analytics:report --days=7` (views, uniques, top pages,
   referrers, content + poll pulse).
+- **First-party engagement events**: `resources/js/tracker.ts` beacons to
+  `POST /t` (CSRF-exempt, throttled): engaged time per page
+  (visibility-aware) + max scroll depth on `pagehide`, clicks on
+  `[data-track]` elements, outbound link clicks, and product events via
+  `window.tnTrack(type, target, value?)` — quiz:start/complete(+score),
+  map:filter:\*, map:poi:\*, share:\*, poll:\*. Sessions are the same daily
+  salted IP hash. The report's Engagement section + dashboard cards surface
+  avg engaged time, scroll %, feature usage, outbound hosts.
+- **Microsoft Clarity** (session recordings + heatmaps): snippet is wired in
+  `app.blade.php` behind `CLARITY_ID` — once the Clarity project exists (needs
+  Sagi's Microsoft login, 5 min), set `CLARITY_ID` in prod `.env` and it goes
+  live with no deploy.
 - **Weekly analytics ritual (every `analyst` session)**: run the report, note
   trends in a `bin/task` note, decide ONE thing to double down on (topic,
   format, or channel) and create the task for it. Traffic with no external
-  referrers means distribution — not content — is the bottleneck.
-- **Engagement signals**: poll votes, quiz shares, time on interactive pages
-  (map/quiz paths in top pages) vs. bounce to articles.
+  referrers means distribution — not content — is the bottleneck. High views
+  with low engaged time means the content isn't holding attention — fix the
+  pages, not the promotion.
+- **North-star metric: engaged time per session.** Views are vanity; the
+  goal is visitors who stay, play (quiz/map/polls), and come back.
 
 ## Operating loop (every session)
 

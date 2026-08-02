@@ -77,6 +77,7 @@ function start(): void {
     currentIndex.value = 0;
     score.value = 0;
     selectedIndex.value = null;
+    window.tnTrack?.('feature', 'quiz:start');
 }
 
 function choose(index: number): void {
@@ -95,6 +96,7 @@ function next(): void {
     }
     if (isLastQuestion.value) {
         stage.value = 'finished';
+        window.tnTrack?.('feature', 'quiz:complete', score.value);
     } else {
         currentIndex.value += 1;
         selectedIndex.value = null;
@@ -305,6 +307,7 @@ function optionClass(index: number): string {
                         :href="shareUrl"
                         target="_blank"
                         rel="noopener"
+                        data-track="share:quiz-x"
                         class="rounded-lg bg-neutral-900 px-6 py-3 font-semibold text-white transition hover:bg-neutral-700"
                     >
                         Share your score on X

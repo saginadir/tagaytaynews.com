@@ -9,6 +9,9 @@ interface Stats {
     views7d: number;
     views30d: number;
     uniqueVisitors7d: number;
+    avgEngagedSeconds7d: number;
+    quizCompletions7d: number;
+    shares7d: number;
     topPages: { path: string; views: number }[];
     topReferrers: { referrer: string; views: number }[];
 }
@@ -26,6 +29,15 @@ const cards = computed(() => [
     { label: 'Views (7 days)', value: stats.value.views7d },
     { label: 'Views (30 days)', value: stats.value.views30d },
     { label: 'Unique visitors (7 days)', value: stats.value.uniqueVisitors7d },
+    {
+        label: 'Avg engaged time (7 days)',
+        value: `${stats.value.avgEngagedSeconds7d}s`,
+    },
+    {
+        label: 'Quiz completions (7 days)',
+        value: stats.value.quizCompletions7d,
+    },
+    { label: 'Shares (7 days)', value: stats.value.shares7d },
 ]);
 </script>
 

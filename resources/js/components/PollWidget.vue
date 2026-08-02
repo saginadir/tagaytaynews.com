@@ -63,6 +63,7 @@ function percent(votes: number): number {
             </button>
             <button
                 @click="showResults = true"
+                data-track="poll:skip-to-results"
                 class="pt-1 text-xs text-neutral-500 hover:text-brand-700"
             >
                 Skip to results &rarr;
@@ -111,6 +112,7 @@ function percent(votes: number): number {
                 :href="`https://twitter.com/intent/tweet?text=${encodeURIComponent('I just voted: ' + poll.question + ' Cast yours on Tagaytay News:')}&url=${encodeURIComponent('https://tagaytaynews.com')}`"
                 target="_blank"
                 rel="noopener"
+                data-track="share:poll-x"
                 class="inline-block rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
             >
                 &#120143; Share this poll
