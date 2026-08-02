@@ -174,7 +174,9 @@ defineProps<{
                         ></span>
                         Trending this week
                     </h2>
-                    <ol class="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <ol
+                        class="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3"
+                    >
                         <li
                             v-for="(article, index) in trending"
                             :key="article.id"

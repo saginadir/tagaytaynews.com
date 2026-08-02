@@ -115,3 +115,23 @@ test('static routes win over the category wildcard', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('About'));
 });
+
+test('category page falls back to latest stories when the section is empty', function () {
+    Category::factory()->create(['slug' => 'news', 'name' => 'News']);
+    $weather = Category::factory()->create(['slug' => 'weather', 'name' => 'Weather']);
+    Article::factory()->published()->create(['category_id' => $weather->id]);
+
+    $this->get('/news')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Category')
+            ->has('articles', 0)
+            ->has('fallback', 1));
+
+    // A section with stories shows no fallback.
+    $this->get('/weather')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('articles', 1)
+            ->has('fallback', 0));
+});

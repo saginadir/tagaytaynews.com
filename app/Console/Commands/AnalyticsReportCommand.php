@@ -3,11 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Models\Article;
+use App\Models\Category;
 use App\Models\Event;
 use App\Models\PageView;
 use App\Models\Poll;
 use Carbon\CarbonInterface;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -70,6 +72,21 @@ class AnalyticsReportCommand extends Command
         $drafts = Article::where('status', 'draft')->count();
         $published = Article::where('status', 'published')->count();
         $this->info("Content: {$published} published · {$drafts} drafts awaiting editorial");
+
+        // Section health: flag empty or stale sections — a news site must not
+        // have dead flagship categories (lesson: /news sat empty for a day).
+        $empty = Category::whereDoesntHave('articles', fn ($query) => $query->published())->pluck('name');
+        if ($empty->isNotEmpty()) {
+            $this->warn('  ⚠ Empty sections: '.$empty->implode(', '));
+        }
+        $stale = Category::whereHas('articles', fn ($query) => $query->published())
+            ->withMax(['articles as newest' => fn ($query) => $query->published()], 'published_at')
+            ->get()
+            ->filter(fn ($category) => $category->newest === null || Carbon::parse($category->newest)->lt(now()->subDays(14)))
+            ->pluck('name');
+        if ($stale->isNotEmpty()) {
+            $this->warn('  ⚠ Sections with nothing new in 14+ days: '.$stale->implode(', '));
+        }
 
         $this->newLine();
         $this->info('Poll pulse:');

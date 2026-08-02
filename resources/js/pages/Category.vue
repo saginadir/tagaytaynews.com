@@ -7,6 +7,7 @@ import type { ArticleItem, CategoryItem, SeoData } from '@/types/content';
 defineProps<{
     category: CategoryItem;
     articles: ArticleItem[];
+    fallback: ArticleItem[];
     seo: SeoData;
 }>();
 </script>
@@ -28,17 +29,27 @@ defineProps<{
                 </p>
             </header>
 
-            <div
-                v-if="!articles.length"
-                class="rounded-xl bg-brand-50 px-8 py-14 text-center"
-            >
-                <p class="mb-2 font-display text-xl font-bold text-brand-950">
-                    Nothing here yet
-                </p>
-                <p class="text-sm text-neutral-600">
-                    No published stories in {{ category.name }} — check back
-                    soon.
-                </p>
+            <div v-if="!articles.length">
+                <div
+                    class="mb-10 rounded-xl bg-brand-50 px-8 py-10 text-center"
+                >
+                    <p
+                        class="mb-2 font-display text-xl font-bold text-brand-950"
+                    >
+                        Nothing here yet
+                    </p>
+                    <p class="text-sm text-neutral-600">
+                        No published stories in {{ category.name }} yet — but
+                        the ridge is never quiet. Here's the latest:
+                    </p>
+                </div>
+                <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+                    <ArticleCard
+                        v-for="article in fallback"
+                        :key="article.id"
+                        :article="article"
+                    />
+                </div>
             </div>
             <div v-else class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
                 <ArticleCard

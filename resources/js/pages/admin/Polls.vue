@@ -48,13 +48,15 @@ function createPoll() {
         .map((line) => line.trim())
         .filter(Boolean);
 
-    pollForm.transform(() => ({
-        question: pollForm.question,
-        options,
-    })).post(`/${props.adminPath}/polls`, {
-        preserveScroll: true,
-        onSuccess: () => pollForm.reset(),
-    });
+    pollForm
+        .transform(() => ({
+            question: pollForm.question,
+            options,
+        }))
+        .post(`/${props.adminPath}/polls`, {
+            preserveScroll: true,
+            onSuccess: () => pollForm.reset(),
+        });
 }
 
 function togglePoll(poll: AdminPoll) {
@@ -225,7 +227,8 @@ const labelClass = 'block text-xs text-zinc-500 mb-1';
                                 <div
                                     class="h-full rounded-full bg-blue-500"
                                     :style="{
-                                        width: percent(poll, option.votes) + '%',
+                                        width:
+                                            percent(poll, option.votes) + '%',
                                     }"
                                 ></div>
                             </div>
