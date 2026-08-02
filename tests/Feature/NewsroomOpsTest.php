@@ -2,8 +2,10 @@
 
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\PageView;
 use App\Models\Poll;
 use App\Models\Source;
+use App\Support\RawHttp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -22,7 +24,7 @@ beforeEach(function () {
 });
 
 test('news:watch-phivolcs queues drafts only for new Taal bulletins', function () {
-    $this->mock(\App\Support\RawHttp::class)
+    $this->mock(RawHttp::class)
         ->shouldReceive('get')
         ->once()
         ->with('https://www.phivolcs.dost.gov.ph/volcano-bulletin/')
@@ -44,7 +46,7 @@ test('news:watch-phivolcs dedupes already-queued bulletins', function () {
         'status' => 'published',
     ]);
 
-    $this->mock(\App\Support\RawHttp::class)
+    $this->mock(RawHttp::class)
         ->shouldReceive('get')->once()->andReturn(PHIVOLCS_INDEX);
 
     $this->artisan('news:watch-phivolcs')->assertSuccessful();
@@ -53,7 +55,7 @@ test('news:watch-phivolcs dedupes already-queued bulletins', function () {
 });
 
 test('news:watch-phivolcs tolerates fetch failure', function () {
-    $this->mock(\App\Support\RawHttp::class)
+    $this->mock(RawHttp::class)
         ->shouldReceive('get')->once()->andReturn(null);
 
     $this->artisan('news:watch-phivolcs')->assertSuccessful();
@@ -62,7 +64,7 @@ test('news:watch-phivolcs tolerates fetch failure', function () {
 
 test('analytics:report prints traffic and content digest', function () {
     Poll::create(['question' => 'Best bulalo?', 'slug' => 'b', 'is_active' => true]);
-    \App\Models\PageView::create(['path' => '/', 'referrer' => 'https://google.com/x', 'ip_hash' => str_repeat('a', 64)]);
+    PageView::create(['path' => '/', 'referrer' => 'https://google.com/x', 'ip_hash' => str_repeat('a', 64)]);
 
     $this->artisan('analytics:report')
         ->expectsOutputToContain('Page views: 1')

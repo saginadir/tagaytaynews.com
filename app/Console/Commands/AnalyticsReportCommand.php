@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Article;
 use App\Models\PageView;
+use App\Models\Poll;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -70,7 +71,7 @@ class AnalyticsReportCommand extends Command
 
         $this->newLine();
         $this->info('Poll pulse:');
-        foreach (\App\Models\Poll::with('options')->latest()->take(1)->get() as $poll) {
+        foreach (Poll::with('options')->latest()->take(1)->get() as $poll) {
             $this->line("  {$poll->question} ({$poll->totalVotes()} votes)");
             foreach ($poll->options as $option) {
                 $this->line("    {$option->votes} — {$option->label}");
