@@ -22,6 +22,7 @@ defineProps<{
     hero: ArticleItem | null;
     latest: ArticleItem[];
     sections: CategorySection[];
+    trending: ArticleItem[];
     ridgeReport: RidgeReportData | null;
     poll: PollData | null;
     seo: SeoData;
@@ -158,6 +159,49 @@ defineProps<{
                             :article="article"
                         />
                     </div>
+                </section>
+
+                <!-- Trending (from first-party page views, hidden when quiet) -->
+                <section
+                    v-if="trending.length"
+                    class="border-t border-neutral-200 py-10"
+                >
+                    <h2
+                        class="mb-6 flex items-center gap-3 font-display text-2xl font-bold text-brand-950"
+                    >
+                        <span
+                            class="h-5 w-1 rounded-full bg-sunrise-500"
+                        ></span>
+                        Trending this week
+                    </h2>
+                    <ol class="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <li
+                            v-for="(article, index) in trending"
+                            :key="article.id"
+                            class="flex items-start gap-4"
+                        >
+                            <span
+                                class="font-display text-4xl leading-none font-bold text-brand-200"
+                                aria-hidden="true"
+                                >{{ index + 1 }}</span
+                            >
+                            <Link
+                                :href="`/${article.category?.slug}/${article.slug}`"
+                                class="group min-w-0"
+                            >
+                                <p
+                                    class="mb-0.5 text-xs font-semibold tracking-wide text-sunrise-600 uppercase"
+                                >
+                                    {{ article.category?.name }}
+                                </p>
+                                <h3
+                                    class="font-display leading-snug font-bold text-brand-950 group-hover:text-brand-700"
+                                >
+                                    {{ article.title }}
+                                </h3>
+                            </Link>
+                        </li>
+                    </ol>
                 </section>
 
                 <!-- Category sections -->
