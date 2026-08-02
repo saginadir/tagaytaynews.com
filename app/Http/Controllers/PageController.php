@@ -39,4 +39,26 @@ class PageController extends Controller
             ),
         ]);
     }
+
+    public function quiz()
+    {
+        return Inertia::render('Quiz', [
+            'seo' => Seo::make(
+                title: 'How Tagaytay Are You? — Tagaytay News',
+                description: 'Ten questions about Taal, bulalo, fog, and ridge life. Find out if you are a Weekend Tourist or an Honorary Tagaytayeño.',
+                canonical: url('/quiz'),
+            ),
+        ]);
+    }
+
+    public function map()
+    {
+        return Inertia::render('RidgeMap', [
+            'seo' => Seo::make(
+                title: 'Explore the Ridge — Tagaytay News',
+                description: 'An interactive map of Tagaytay: viewpoints, food spots, attractions, and stays along the ridge.',
+                canonical: url('/map'),
+            ),
+        ]);
+    }
 }

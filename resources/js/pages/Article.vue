@@ -1,22 +1,66 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import ArticleCard from '@/components/ArticleCard.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import type { ArticleItem, SeoData } from '@/types/content';
 
-defineProps<{
+const props = defineProps<{
     article: ArticleItem;
     bodyHtml: string;
     related: ArticleItem[];
     seo: SeoData;
 }>();
+
+// Reading progress bar
+const progress = ref(0);
+
+function updateProgress() {
+    const doc = document.documentElement;
+    const total = doc.scrollHeight - doc.clientHeight;
+    progress.value =
+        total > 0 ? Math.min(100, (window.scrollY / total) * 100) : 0;
+}
+
+onMounted(() => {
+    updateProgress();
+    window.addEventListener('scroll', updateProgress, { passive: true });
+});
+
+onBeforeUnmount(() => window.removeEventListener('scroll', updateProgress));
+
+// Sharing
+const canonical = computed(() => props.seo.canonical ?? window.location.href);
+const copied = ref(false);
+
+const shareLinks = computed(() => ({
+    x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(props.article.title)}&url=${encodeURIComponent(canonical.value)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical.value)}`,
+}));
+
+async function copyLink() {
+    try {
+        await navigator.clipboard.writeText(canonical.value);
+        copied.value = true;
+        setTimeout(() => (copied.value = false), 2000);
+    } catch {
+        window.prompt('Copy this link:', canonical.value);
+    }
+}
 </script>
 
 <template>
     <PublicLayout :active-slug="article.category?.slug">
         <SeoHead :seo="seo" />
+
+        <!-- Reading progress -->
+        <div
+            class="fixed top-0 left-0 z-50 h-1 bg-sunrise-500 transition-[width] duration-100"
+            :style="{ width: progress + '%' }"
+            aria-hidden="true"
+        ></div>
 
         <article class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
             <!-- Breadcrumb -->
@@ -79,7 +123,43 @@ defineProps<{
                     :alt="article.featured_image.alt || article.title"
                     class="w-full rounded-xl object-cover"
                 />
+                <figcaption
+                    v-if="article.featured_image.credit"
+                    class="mt-2 text-xs text-neutral-500"
+                >
+                    {{ article.featured_image.credit }}
+                </figcaption>
             </figure>
+
+            <!-- Share -->
+            <div
+                class="mb-8 flex flex-wrap items-center gap-2 border-y border-neutral-200 py-3"
+            >
+                <span
+                    class="mr-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase"
+                    >Share</span
+                >
+                <a
+                    :href="shareLinks.x"
+                    target="_blank"
+                    rel="noopener"
+                    class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
+                    >&#120143; Post</a
+                >
+                <a
+                    :href="shareLinks.facebook"
+                    target="_blank"
+                    rel="noopener"
+                    class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
+                    >Facebook</a
+                >
+                <button
+                    @click="copyLink"
+                    class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:border-brand-500 hover:text-brand-700"
+                >
+                    {{ copied ? '✓ Link copied' : 'Copy link' }}
+                </button>
+            </div>
 
             <!-- Body (markdown rendered server-side) -->
             <div

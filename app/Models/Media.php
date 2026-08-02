@@ -12,6 +12,7 @@ class Media extends Model
         'mime_type',
         'size',
         'alt',
+        'credit',
     ];
 
     protected $appends = ['url', 'is_video'];

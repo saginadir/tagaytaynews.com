@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import ArticleCard from '@/components/ArticleCard.vue';
+import PollWidget from '@/components/PollWidget.vue';
+import RidgeReportWidget from '@/components/RidgeReportWidget.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
-import type { ArticleItem, CategoryItem, SeoData } from '@/types/content';
+import type {
+    ArticleItem,
+    CategoryItem,
+    PollData,
+    RidgeReportData,
+    SeoData,
+} from '@/types/content';
 
 interface CategorySection extends CategoryItem {
     articles: ArticleItem[];
@@ -14,6 +22,8 @@ defineProps<{
     hero: ArticleItem | null;
     latest: ArticleItem[];
     sections: CategorySection[];
+    ridgeReport: RidgeReportData | null;
+    poll: PollData | null;
     seo: SeoData;
 }>();
 </script>
@@ -86,6 +96,46 @@ defineProps<{
                             </p>
                         </div>
                     </Link>
+                </section>
+
+                <!-- Engagement row: live conditions, poll, fun -->
+                <section
+                    v-if="ridgeReport || poll"
+                    class="grid gap-6 border-t border-neutral-200 py-10 md:grid-cols-2 lg:grid-cols-3"
+                >
+                    <RidgeReportWidget
+                        v-if="ridgeReport"
+                        :report="ridgeReport"
+                    />
+                    <PollWidget v-if="poll" :poll="poll" />
+                    <div
+                        class="flex h-full flex-col rounded-xl bg-sunrise-50 p-5"
+                    >
+                        <h3
+                            class="mb-1 text-xs font-semibold tracking-widest text-sunrise-600 uppercase"
+                        >
+                            Take a break
+                        </h3>
+                        <p
+                            class="mb-4 font-display text-lg leading-snug font-bold text-brand-950"
+                        >
+                            More than news — play with the ridge.
+                        </p>
+                        <div class="mt-auto space-y-2">
+                            <Link
+                                href="/quiz"
+                                class="block rounded-lg bg-brand-700 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-brand-800"
+                            >
+                                &#127918; Quiz: How Tagaytay are you?
+                            </Link>
+                            <Link
+                                href="/map"
+                                class="block rounded-lg border border-brand-300 px-4 py-2.5 text-center text-sm font-semibold text-brand-800 transition hover:bg-brand-100"
+                            >
+                                &#128506; Explore the ridge map
+                            </Link>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Latest -->

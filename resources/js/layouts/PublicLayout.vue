@@ -143,6 +143,16 @@ const year = new Date().getFullYear();
                                 >Work with us</Link
                             >
                         </li>
+                        <li>
+                            <Link href="/quiz" class="hover:text-white"
+                                >Quiz: How Tagaytay are you?</Link
+                            >
+                        </li>
+                        <li>
+                            <Link href="/map" class="hover:text-white"
+                                >Explore the ridge map</Link
+                            >
+                        </li>
                     </ul>
                 </div>
             </div>

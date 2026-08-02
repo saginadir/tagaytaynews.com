@@ -5,6 +5,7 @@ export interface MediaItem {
     mime_type: string;
     size: number;
     alt: string | null;
+    credit: string | null;
     url: string;
     is_video: boolean;
     created_at: string;
@@ -55,6 +56,33 @@ export interface ArticleItem {
 export interface NavCategory {
     name: string;
     slug: string;
+}
+
+export interface RidgeReportData {
+    temperature: number;
+    humidity: number;
+    windKph: number;
+    visibilityM: number;
+    weatherLabel: string;
+    fogLevel: 'none' | 'patches' | 'dense';
+    sunrise: string;
+    sunset: string;
+    taalAlert: number;
+    updatedAt: string;
+}
+
+export interface PollOptionData {
+    id: number;
+    label: string;
+    votes: number;
+}
+
+export interface PollData {
+    id: number;
+    question: string;
+    totalVotes: number;
+    myOptionId: number | null;
+    options: PollOptionData[];
 }
 
 export interface SeoData {
