@@ -33,6 +33,7 @@ return [
         // safe to expose; the personal API key for querying stays in .env.
         'key' => env('POSTHOG_KEY'),
         'host' => env('POSTHOG_HOST', 'https://eu.i.posthog.com'),
+        'api_host' => env('POSTHOG_API_HOST', 'https://eu.posthog.com'),
         'personal_key' => env('POSTHOG_PERSONAL_KEY'),
         'project_id' => env('POSTHOG_PROJECT_ID'),
     ],

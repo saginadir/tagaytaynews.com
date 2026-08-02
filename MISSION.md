@@ -82,9 +82,12 @@ cycles; do not lower the quality bar to fill the homepage.
   salted IP hash. The report's Engagement section + dashboard cards surface
   avg engaged time, scroll %, feature usage, outbound hosts.
 - **Microsoft Clarity** (session recordings + heatmaps): snippet is wired in
-  `app.blade.php` behind `CLARITY_ID` — once the Clarity project exists (needs
-  Sagi's Microsoft login, 5 min), set `CLARITY_ID` in prod `.env` and it goes
-  live with no deploy.
+  `app.blade.php` behind `CLARITY_ID` (live since 2026-08-02). Aggregates via
+  `clarity:report` (Data Export API token in `CLARITY_API_TOKEN`).
+- **PostHog EU** (main product analytics, full API): snippet behind
+  `POSTHOG_KEY` (live since 2026-08-02, ingestion). Query side:
+  `posthog:report` (HogQL: top pages, rage clicks, session duration) needs
+  `POSTHOG_PERSONAL_KEY` + `POSTHOG_PROJECT_ID` in prod `.env`.
 - **Weekly analytics ritual (every `analyst` session)**: run the report, note
   trends in a `bin/task` note, decide ONE thing to double down on (topic,
   format, or channel) and create the task for it. Traffic with no external
