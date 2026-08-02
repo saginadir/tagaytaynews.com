@@ -28,6 +28,15 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'posthog' => [
+        // PostHog product analytics (EU cloud). Public ingestion key is
+        // safe to expose; the personal API key for querying stays in .env.
+        'key' => env('POSTHOG_KEY'),
+        'host' => env('POSTHOG_HOST', 'https://eu.i.posthog.com'),
+        'personal_key' => env('POSTHOG_PERSONAL_KEY'),
+        'project_id' => env('POSTHOG_PROJECT_ID'),
+    ],
+
     'clarity' => [
         // Microsoft Clarity project ID (session recordings + heatmaps).
         // Set CLARITY_ID in .env once the Clarity project exists.
