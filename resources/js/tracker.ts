@@ -1,25 +1,28 @@
 /**
  * First-party engagement tracker. No cookies, no IDs sent — the server
  * derives a daily-rotating session hash from the IP. Measures:
- *  - engaged time per page (visibility-aware) + max scroll depth, sent on pagehide
+ *  - engaged time per page (visibility-aware) + max scroll depth, flushed
+ *    on pagehide AND on Inertia navigations (SPA — no unload between pages)
  *  - clicks on elements marked [data-track]
  *  - outbound link clicks
  * Exposes window.tnTrack(type, target, value?) for product events
  * (quiz, poll, map, shares).
  */
 
+import { router } from '@inertiajs/vue3';
+
 type TrackType = 'time' | 'click' | 'outbound' | 'feature';
 
 const ENDPOINT = '/t';
 
-function send(type: TrackType, target?: string, value?: number): void {
+function send(
+    type: TrackType,
+    path: string,
+    target?: string,
+    value?: number,
+): void {
     try {
-        const body = JSON.stringify({
-            type,
-            path: window.location.pathname,
-            target,
-            value,
-        });
+        const body = JSON.stringify({ type, path, target, value });
         const blob = new Blob([body], { type: 'application/json' });
 
         if (!navigator.sendBeacon(ENDPOINT, blob)) {
@@ -40,10 +43,12 @@ declare global {
         tnTrack: (type: TrackType, target: string, value?: number) => void;
     }
 }
-window.tnTrack = send;
+window.tnTrack = (type, target, value) =>
+    send(type, window.location.pathname, target, value);
 
 export function initTracker(): void {
     // Engaged time (only while the tab is visible) + max scroll depth.
+    let currentPath = window.location.pathname;
     let engagedMs = 0;
     let lastTick = Date.now();
     let maxScroll = 0;
@@ -57,7 +62,7 @@ export function initTracker(): void {
     };
     setInterval(tick, 1000);
 
-    const onScroll = (): void => {
+    const measureScroll = (): void => {
         const doc = document.documentElement;
         const total = doc.scrollHeight - doc.clientHeight;
         if (total > 0) {
@@ -67,14 +72,24 @@ export function initTracker(): void {
             );
         }
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scroll', measureScroll, { passive: true });
 
-    window.addEventListener('pagehide', () => {
+    // value = engaged ms, target = max scroll %
+    const flush = (): void => {
         tick();
         if (engagedMs >= 1000) {
-            // value = engaged ms, target = max scroll %
-            send('time', String(maxScroll), engagedMs);
+            send('time', currentPath, String(maxScroll), engagedMs);
         }
+        engagedMs = 0;
+        maxScroll = 0;
+    };
+
+    window.addEventListener('pagehide', flush);
+
+    // SPA: leaving a page via Inertia never fires pagehide.
+    router.on('navigate', () => {
+        flush();
+        currentPath = window.location.pathname;
     });
 
     // Click delegation: [data-track] elements and external links.
@@ -84,7 +99,11 @@ export function initTracker(): void {
 
         const tracked = el.closest('[data-track]');
         if (tracked) {
-            send('click', tracked.getAttribute('data-track') ?? undefined);
+            send(
+                'click',
+                currentPath,
+                tracked.getAttribute('data-track') ?? undefined,
+            );
             return;
         }
 
@@ -95,7 +114,7 @@ export function initTracker(): void {
                 /^https?:\/\//.test(href) &&
                 !href.includes(window.location.host)
             ) {
-                send('outbound', href);
+                send('outbound', currentPath, href);
             }
         }
     });
