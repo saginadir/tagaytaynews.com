@@ -10,4 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('news:fetch')->everyThirtyMinutes()->withoutOverlapping();
 Schedule::command('news:watch-phivolcs')->everySixHours()->withoutOverlapping();
+Schedule::command('taal:sync-alert')->hourly()->withoutOverlapping();
 Schedule::command('seo:indexnow')->dailyAt('4:17')->withoutOverlapping();

@@ -54,13 +54,19 @@ unreviewed:
    bulletin index (their site is image-based + malformed headers — we fetch via
    raw sockets, `App\Support\RawHttp`). New Taal bulletin → draft saying
    "write this up".
-3. **Editorial pass (an agent wearing the `editor` hat)**: open drafts, verify
-   facts against the source (open it in a real browser when bot-blocked),
-   rewrite in our own words with attribution, add a photo, publish. Original
-   evergreen content lives in `content/articles/*.md` → `articles:import`.
-4. **Taal alert level** in the Ridge Report widget comes from the `settings`
-   table — update it when PHIVOLCS changes the level (admin UI is task #19;
-   until then: `Setting::set('taal_alert_level', 'N')` via tinker).
+3. **Editorial pass (an agent wearing the `editor` hat)**: 2× daily — full
+   newsroom at 07:05 (drafts + section health + Ridge Report; Friday adds the
+   weekend planner) and an evening sweep at 19:03 (drafts + breaking-priority).
+   Open drafts, verify facts against the source (open it in a real browser
+   when bot-blocked), rewrite in our own words with attribution, add a photo,
+   publish. Original evergreen content lives in `content/articles/*.md` →
+   `articles:import`.
+4. **Taal alert level** (Ridge Report widget) is **auto-synced hourly** by
+   `taal:sync-alert` — it reads the newest PHIVOLCS bulletin and updates the
+   `settings` row ONLY when a text "Alert Level N" is found (their bulletins
+   are usually image-based, so most runs no-op by design: parse failure never
+   changes the level). Manual override stays available in admin Polls & Alerts
+   for anything the sync can't read.
 
 National outlets only mention Tagaytay a few times a week — that is expected
 for a hyperlocal. Evergreen guides + widgets carry the site between news
