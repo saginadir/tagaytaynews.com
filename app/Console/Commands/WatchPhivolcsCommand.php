@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Source;
 use App\Support\RawHttp;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -62,6 +63,7 @@ class WatchPhivolcsCommand extends Command
         }
 
         $created = 0;
+        $skippedStale = 0;
         $seen = [];
 
         foreach ($matches as [$full, $url, $title]) {
@@ -72,6 +74,14 @@ class WatchPhivolcsCommand extends Command
                 continue;
             }
             $seen[$url] = true;
+
+            // Deleted drafts lose their dedupe key — never resurrect old
+            // bulletins (the PHIVOLCS index is years stale itself).
+            if ($this->isStale($url.' '.$title)) {
+                $skippedStale++;
+
+                continue;
+            }
 
             if (Article::where('source_url', $url)->exists()) {
                 continue;
@@ -94,9 +104,38 @@ class WatchPhivolcsCommand extends Command
             }
         }
 
-        $this->info("PHIVOLCS watch: {$created} new bulletin(s) queued, ".count($seen).' link(s) checked.');
-        Log::info('news:watch-phivolcs done', ['created' => $created, 'checked' => count($seen)]);
+        $this->info("PHIVOLCS watch: {$created} new bulletin(s) queued, {$skippedStale} stale skipped, ".count($seen).' link(s) checked.');
+        Log::info('news:watch-phivolcs done', ['created' => $created, 'stale' => $skippedStale, 'checked' => count($seen)]);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Bulletin URLs carry an English or Filipino date slug
+     * (...-09-july-2025-... / ...-09-hulyo-2025-...). Anything older than
+     * 14 days is archival, not news. Unparseable dates pass through (safer
+     * to alert the editor than to miss a fresh bulletin).
+     */
+    private function isStale(string $text): bool
+    {
+        $months = [
+            'january' => 1, 'february' => 2, 'march' => 3, 'april' => 4, 'may' => 5, 'june' => 6,
+            'july' => 7, 'august' => 8, 'september' => 9, 'october' => 10, 'november' => 11, 'december' => 12,
+            'enero' => 1, 'pebrero' => 2, 'marzo' => 3, 'abril' => 4, 'mayo' => 5, 'hunyo' => 6,
+            'hulyo' => 7, 'agosto' => 8, 'setyembre' => 9, 'oktubre' => 10, 'nobyembre' => 11, 'disyembre' => 12,
+        ];
+
+        if (! preg_match('/(\d{1,2})-([a-z]+)-(\d{4})/i', $text, $match)) {
+            return false;
+        }
+
+        $month = $months[mb_strtolower($match[2])] ?? null;
+
+        if ($month === null) {
+            return false;
+        }
+
+        return Carbon::createFromDate((int) $match[3], $month, (int) $match[1])
+            ->lt(now()->subDays(14));
     }
 }

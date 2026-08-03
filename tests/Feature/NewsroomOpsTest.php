@@ -10,13 +10,21 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-const PHIVOLCS_INDEX = <<<'HTML'
-<html><body>
-<a href="https://www.phivolcs.dost.gov.ph/taal-volcano-summary-of-24hr-observation-09-july-2025-12-00-am/">Taal Volcano Summary of 24Hr Observation 09 July 2025</a>
-<a href="https://www.phivolcs.dost.gov.ph/bulkang-taal-buod-ng-24-oras-na-pagmamanman-09-hulyo-2025-alas-12-ng-umaga/">Bulkang Taal Buod ng 24 Oras na Pagmamanman 09 Hulyo 2025</a>
-<a href="https://www.phivolcs.dost.gov.ph/mayon-volcano-summary-of-24hr-observation-09-july-2025/">Mayon Volcano Summary of 24Hr Observation 09 July 2025</a>
-</body></html>
-HTML;
+function phivolcsIndex(): string
+{
+    $date = now()->subDays(3);
+    $filipinoMonths = [1 => 'enero', 'pebrero', 'marzo', 'abril', 'mayo', 'hunyo', 'hulyo', 'agosto', 'setyembre', 'oktubre', 'nobyembre', 'disyembre'];
+    $en = $date->format('d-F-Y');
+    $fil = $date->format('d-').$filipinoMonths[(int) $date->format('n')].$date->format('-Y');
+
+    return <<<HTML
+    <html><body>
+    <a href="https://www.phivolcs.dost.gov.ph/taal-volcano-summary-of-24hr-observation-{$en}-12-00-am/">Taal Volcano Summary of 24Hr Observation {$date->format('d F Y')}</a>
+    <a href="https://www.phivolcs.dost.gov.ph/bulkang-taal-buod-ng-24-oras-na-pagmamanman-{$fil}-alas-12-ng-umaga/">Bulkang Taal Buod ng 24 Oras na Pagmamanman</a>
+    <a href="https://www.phivolcs.dost.gov.ph/mayon-volcano-summary-of-24hr-observation-{$en}/">Mayon Volcano Summary of 24Hr Observation</a>
+    </body></html>
+    HTML;
+}
 
 beforeEach(function () {
     Category::create(['name' => 'Taal Volcano', 'slug' => 'taal-volcano']);
@@ -28,7 +36,7 @@ test('news:watch-phivolcs queues drafts only for new Taal bulletins', function (
         ->shouldReceive('get')
         ->once()
         ->with('https://www.phivolcs.dost.gov.ph/volcano-bulletin/')
-        ->andReturn(PHIVOLCS_INDEX);
+        ->andReturn(phivolcsIndex());
 
     $this->artisan('news:watch-phivolcs')->assertSuccessful();
 
@@ -42,12 +50,12 @@ test('news:watch-phivolcs dedupes already-queued bulletins', function () {
         'title' => 'Existing write-up',
         'body' => 'body',
         'category_id' => Category::firstOrFail()->id,
-        'source_url' => 'https://www.phivolcs.dost.gov.ph/taal-volcano-summary-of-24hr-observation-09-july-2025-12-00-am/',
+        'source_url' => 'https://www.phivolcs.dost.gov.ph/taal-volcano-summary-of-24hr-observation-'.now()->subDays(3)->format('d-F-Y').'-12-00-am/',
         'status' => 'published',
     ]);
 
     $this->mock(RawHttp::class)
-        ->shouldReceive('get')->once()->andReturn(PHIVOLCS_INDEX);
+        ->shouldReceive('get')->once()->andReturn(phivolcsIndex());
 
     $this->artisan('news:watch-phivolcs')->assertSuccessful();
 
@@ -71,4 +79,20 @@ test('analytics:report prints traffic and content digest', function () {
         ->expectsOutputToContain('google.com')
         ->expectsOutputToContain('Best bulalo?')
         ->assertSuccessful();
+});
+
+test('news:watch-phivolcs never resurrects stale bulletins older than 14 days', function () {
+    $staleIndex = <<<'HTML'
+    <html><body>
+    <a href="https://www.phivolcs.dost.gov.ph/taal-volcano-summary-of-24hr-observation-09-july-2025-12-00-am/">Taal Volcano Summary of 24Hr Observation 09 July 2025</a>
+    <a href="https://www.phivolcs.dost.gov.ph/bulkang-taal-buod-ng-24-oras-na-pagmamanman-09-hulyo-2025-alas-12-ng-umaga/">Bulkang Taal Buod ng 24 Oras na Pagmamanman 09 Hulyo 2025</a>
+    </body></html>
+    HTML;
+
+    $this->mock(RawHttp::class)
+        ->shouldReceive('get')->once()->andReturn($staleIndex);
+
+    $this->artisan('news:watch-phivolcs')->assertSuccessful();
+
+    expect(Article::count())->toBe(0);
 });
