@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Media;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Image;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -96,45 +97,31 @@ class ImportMediaCommand extends Command
 
     /**
      * Downscale oversized images to web-friendly dimensions (max 1920px wide,
-     * JPEG q82). Returns [body, mime] — unchanged when already small.
+     * JPEG q82) using Laravel's image API (Intervention driver, GD/Imagick).
+     * Returns [body, mime] — unchanged when already small or when no driver
+     * is available (prod without GD keeps the original instead of failing).
      *
      * @return array{0: string, 1: string}
      */
     private function downscale(string $body, string $mime, string $url): array
     {
-        if (! function_exists('imagecreatefromstring')) {
-            Log::warning('Media import: GD extension unavailable, storing original', ['url' => $url]);
+        try {
+            $image = Image::fromBytes($body);
+
+            if ($image->width() <= 1920 && $mime === 'image/jpeg' && strlen($body) < 1_500_000) {
+                return [$body, $mime];
+            }
+
+            $resized = $image->scale(width: 1920)->optimize(format: 'jpg', quality: 82);
+
+            return [(string) $resized, 'image/jpeg'];
+        } catch (\Throwable $e) {
+            Log::warning('Media import: image driver unavailable or decode failed, storing original', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
 
             return [$body, $mime];
         }
-
-        $image = @imagecreatefromstring($body);
-
-        if ($image === false) {
-            Log::warning('Media import could not decode image for resize', ['url' => $url]);
-
-            return [$body, $mime];
-        }
-
-        $width = imagesx($image);
-
-        if ($width <= 1920 && $mime === 'image/jpeg' && strlen($body) < 1_500_000) {
-            return [$body, $mime];
-        }
-
-        $height = imagesy($image);
-        $newWidth = min($width, 1920);
-        $newHeight = (int) round($height * ($newWidth / $width));
-        $scaled = imagescale($image, $newWidth, $newHeight);
-
-        if ($scaled === false) {
-            return [$body, $mime];
-        }
-
-        ob_start();
-        imagejpeg($scaled, null, 82);
-        $resized = (string) ob_get_clean();
-
-        return [$resized, 'image/jpeg'];
     }
 }
