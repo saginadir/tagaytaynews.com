@@ -134,6 +134,11 @@ publish → log a note. **Analyst sessions** (weekly): the ritual above.
   Tier 1/2 source. Label unconfirmed breaking items as *developing*.
 - Always attribute and link sources. Rewrite in our own words — no copy-paste
   journalism, no scraped full text.
+- **No article publishes without a featured image.** Find a relevant licensed
+  photo (`php artisan media:find "query" --article=slug` searches Wikimedia
+  Commons and imports with credit; GD-downscaled on import). If nothing fits,
+  reuse a relevant photo from the media library. Text-only articles are a
+  defect, not a style.
 - Accuracy over speed. If a fact is unverified, say so in the article.
 - No fabricated quotes, names, numbers, or images — ever.
 - Corrections: fix the article and add a visible correction note when material.
