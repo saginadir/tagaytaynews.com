@@ -114,7 +114,9 @@ class ImportMediaCommand extends Command
 
             $resized = $image->scale(width: 1920)->optimize(format: 'jpg', quality: 82);
 
-            return [(string) $resized, 'image/jpeg'];
+            // __toString() on Illuminate\Image\Image returns a data URI — use
+            // toBytes() so we store actual JPEG binary, not base64 text.
+            return [$resized->toBytes(), 'image/jpeg'];
         } catch (\Throwable $e) {
             Log::warning('Media import: image driver unavailable or decode failed, storing original', [
                 'url' => $url,

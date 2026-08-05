@@ -60,3 +60,27 @@ test('media:find imports the chosen candidate with credit', function () {
     expect($media->credit)->toContain('Jane Doe')
         ->and($media->credit)->toContain('CC BY-SA 4.0');
 });
+
+test('media:find stores binary JPEG after downscaling, never a data URI', function () {
+    // Regression: (string) on Illuminate\Image\Image yields a data URI; the
+    // command must write toBytes() so browsers get decodable JPEG binary.
+    $big = imagecreatetruecolor(2400, 1600);
+    ob_start();
+    imagejpeg($big, null, 90);
+    $bigJpeg = ob_get_clean();
+
+    Storage::fake('public');
+    Http::fake([
+        'commons.wikimedia.org/*' => Http::response(commonsFixture()),
+        'upload.wikimedia.org/*' => Http::response($bigJpeg, 200, ['Content-Type' => 'image/jpeg']),
+    ]);
+
+    $this->artisan('media:find', ['query' => 'cavite'])
+        ->assertSuccessful();
+
+    $media = Media::firstOrFail();
+    $stored = Storage::disk('public')->get($media->disk_path);
+
+    expect(substr($stored, 0, 3))->toBe("\xFF\xD8\xFF")
+        ->and(substr($stored, 0, 11))->not->toBe('data:image');
+});
