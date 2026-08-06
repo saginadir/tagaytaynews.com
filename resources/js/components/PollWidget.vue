@@ -38,6 +38,7 @@ function percent(votes: number): number {
 
 <template>
     <div
+        id="have-your-say"
         class="flex h-full flex-col rounded-xl border border-neutral-200 bg-white p-5"
     >
         <h3

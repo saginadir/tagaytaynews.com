@@ -41,6 +41,7 @@ const updatedMinutes = computed(() =>
 
 <template>
     <div
+        id="ridge-report"
         class="flex h-full flex-col rounded-xl bg-gradient-to-br from-brand-800 via-brand-900 to-brand-950 p-5 text-brand-50"
     >
         <div class="mb-3 flex items-center justify-between">
