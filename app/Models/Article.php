@@ -18,6 +18,10 @@ class Article extends Model
 
     public const STATUS_PUBLISHED = 'published';
 
+    // Discarded drafts keep their row (and source_url) so the feed importer
+    // does not re-import rejected stories — never hard-delete a draft.
+    public const STATUS_DISCARDED = 'discarded';
+
     protected $fillable = [
         'title',
         'slug',
